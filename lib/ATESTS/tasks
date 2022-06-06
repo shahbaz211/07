@@ -1,0 +1,58 @@
+Task #1:
+In AAddPost.dart, I want to see the prefix Icon and the container's border change colors whenever the text field is focused (a.k.a whenever the user clicks on it). And when the user clicks away, i'd like the border + the prefix icon to return to their original colors. 
+
+
+Task #2:
+In AAddPost.dart, the user can select 1 of 3 options. 
+1. nothing (this will only display the title on the post card).
+2. selecting a picture with the help of imagepicker dependency.
+3. selecting a youtube link to display a video.
+
+Right now the issue that I'm facing is that in order for the message to be sent successfully, both a youtube link and a picture from the gallery is required. I don't want this. I want those two options to be optional. If the variable "selected" == 0 then that means no picture and no link are required. If "selected" == 1 then that means a picture is required. If "selected" == 2 then that means a youtube link is required.
+
+The issue here probably has to do with APost.dart in "models" folder where "required" is set for both videoUrl and postUrl.
+
+
+Task #3:
+In AAddPost.dart, when the user clicks on the second icon to upload a picture, the user has the option to click "cancel". If the user does click cancel, I'd like to see the "selected variable" return to "0" instead of staying at "1".
+
+
+Task #4:
+In AAddPost.dart, when the user clicks on the third icon to paste a youtube link, I want the _videoUrlController text field to appear in a "showdialog" instead of rendering on the current screen. 
+
+If the user doesn't paste anything and returns to the AAddPost.dart screen without anything in the _videoUrlController, the "selected" value should automatically return to "0" instead of staying "2".
+
+I'm also having an issue where the dependency I'm using to render Youtube videos requires you to manually convert the video url into the video "ID". I've tried regex to retrieve the ID within the url but haven't been successful. So in other words, the variable "videoUrl" should convert the url taken from _videoUrlController.text. Currently the variable "videoUrl" simply has a String with a valid ID.
+
+Also to note, I'm aware that the dependency youtube_player_flutter: ^8.1.0 is easier to use and only requires url instead of ID's but I was running into full Screen problems with that dependency and thhis is why I'm using youtube_player_iframe.dart instead
+
+Task #5:
+In AAddPost.dart, if the user tries to click on "Send Message" but the _titleController.text is empty, show text "error" (right under the title text field container) instead of sending the message to firebase. the function "postImage" should only occur if there's at least 1 charcter is the titleController text field.
+
+Task #6:
+In AAddPost.dart, if you click on the second Toggle Switch, you'll be directed to a new page layout. On this page I'd like the user to have the ability to manually add text fields. When the user clicks the text button "add", a new text field will appear. The user can add up to 10 text fields maximum. Once the maximum is reached, the add button will disappear and will instead show Text("max.") (not clickable). The user will also have the ability to delete the text fields but once there's only two text fields left, the user can no longer delete the last two. To delete a text field, there will be a "trash/delete" icon placed at the end of each text field. As soon as there's three text fields or more, the "trash/delete" icon will appear on each one of the text fields (even the two first ones). In other words, the user has the choice to delete the text field that they want and not necessarily text field #3 and above. But once there's only two text fields left, the trash icons disappear. The hintText inside each text field should always remain in order (from option#1 to option#10). Example: If there's 5 text fields and the user decides to delete option#3, it should turn option#4 into option #3 and option#5 into option #4.
+
+Task #7:
+On AHome.dart, we can visualize the sent messages in a list view. If you use the toggle switch in the app bar, the messages are sent in both the "global" layout & the "national" layout. Instead of this, I want the message to only appear in the proper category. If global == true inside the "posts" collection in firebase, then it should only display on the "global" layout, not the national layout. If global == false, it should only display in the national layout, not the global layout. Within the national category, there are many sub categories which are represented by each country in ACountriesValues.dart file. If you take a look inside the "users collection", there is a field named: "country". When the user signs up, they will select their country. For now I simply used a variable and put "us" as the default value. That means the user would be from the United States. 
+
+Now if you click on "countries" on the home screen, you'll be directed to a list of countries. If you select United States, and go back to the home screen and then click on the toggle switch "national", it should only display the messages from users with the value "us". If you select another country in the countries list screen, it should no longer display the messages from the users with country: "us" but instead display messages sent by users from that new selected country. If global == true though, the "country" field inside "users" collection doesn't matter.
+
+Task #8
+In APostCard.dart, we have a String variable named "placement". Currently it holds a random default value but I would like this to be changed. Instead, I want to see the value change based on the number/value underneath "score". The message with the highest number, should have '1' has the String variable "placmeent", the message with the 2nd highest number, should have '2' has the String variable "placement", etc. etc.
+
+Messages sent in "global" shouldn't compare numbers with messages sent in "national". Also, messages sent in one country, shouldn't compare with messages sent in another country.
+
+//
+//
+//
+
+*Note: You may need to change the Storage rules on Firebase. 
+
+I simply changed:
+allow read, write: if false;
+to
+allow read, write: if true;
+
+You'll likely need to create your own firebase project and set it up on Android (only takes a few minutes).
+
+If you have any questions or would like for me to clarify any of the tasks, don't hesitate to ask!

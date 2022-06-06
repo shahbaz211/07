@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "424538767306",
+    "project_id": "aft-flutter",
+    "storage_bucket": "aft-flutter.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:424538767306:android:1ec68ca9ab6bf5a29e9933",
+        "android_client_info": {
+          "package_name": "com.example.aft"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "424538767306-nv4oiaid7bfm1gc21bhls9utuosf0jvv.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDuKDz78TOAUIuwm5V9jfZ7qhSz3gyQCS0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "424538767306-nv4oiaid7bfm1gc21bhls9utuosf0jvv.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
