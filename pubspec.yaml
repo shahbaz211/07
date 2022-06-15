@@ -37,6 +37,7 @@ dependencies:
   flag: ^6.0.0
   flutter:
     sdk: flutter
+  flutter_keyboard_visibility: ^5.2.0
   flutter_staggered_grid_view: ^0.6.1
   flutter_svg: ^1.1.0
   image_picker: ^0.8.5+3
