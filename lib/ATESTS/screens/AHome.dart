@@ -1,7 +1,12 @@
+import 'package:aft/ATESTS/models/APost.dart';
+import 'package:aft/ATESTS/models/AUser.dart';
+import 'package:aft/ATESTS/provider/AUserProvider.dart';
 import 'package:animated_toggle_switch/animated_toggle_switch.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
 // import 'package:flag/flag.dart';
 import '../add/AAddPost.dart';
 import '../add/AAddPost.dart';
@@ -150,12 +155,21 @@ class _MyHomeScreenState extends State<MyHomeScreen> {
               child: CircularProgressIndicator(),
             );
           }
+
           return ListView.builder(
-            itemCount: snapshot.data!.docs.length,
-            itemBuilder: (context, index) => PostCardTest(
-              snap: snapshot.data!.docs[index].data(),
-            ),
-          );
+              itemCount: snapshot.data!.docs.length,
+              itemBuilder: (context, index) {
+                print('GETTTING LIST');
+                print(
+                    'snapshot.data!.docs[index].data(): ${snapshot.data!.docs[index].data()}');
+                Post post = Post.fromSnap(snapshot.data!.docs[index]);
+                final User? user = Provider.of<UserProvider>(context).getUser;
+                print(
+                    '_post.plus.contains(user.uid): ${post.plus.contains(user?.uid)}');
+                return PostCardTest(
+                  post: post,
+                );
+              });
         },
       ),
     );

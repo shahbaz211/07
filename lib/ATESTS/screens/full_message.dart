@@ -1,5 +1,5 @@
 import 'dart:developer';
-
+import 'package:aft/ATESTS/models/APost.dart';
 import 'package:aft/ATESTS/models/AUser.dart';
 import 'package:aft/ATESTS/provider/AUserProvider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -18,15 +18,23 @@ import '../methods/AFirestoreMethods.dart';
 import 'ALikeAnimation.dart';
 import 'comment_card.dart';
 
+String? currentReplyCommentId;
+
 class FullMessage extends StatefulWidget {
-  final snap;
-  const FullMessage({Key? key, required this.snap}) : super(key: key);
+  final Post post;
+
+  const FullMessage({
+    Key? key,
+    required this.post,
+  }) : super(key: key);
 
   @override
   State<FullMessage> createState() => _FullMessageState();
 }
 
 class _FullMessageState extends State<FullMessage> {
+  late Post _post;
+
   final TextEditingController _commentController = TextEditingController();
   late YoutubePlayerController controller;
   bool isLikeAnimating = false;
@@ -38,9 +46,10 @@ class _FullMessageState extends State<FullMessage> {
 
   @override
   void initState() {
+    _post = widget.post;
     super.initState();
     controller = YoutubePlayerController(
-      initialVideoId: '${widget.snap['videoUrl']}',
+      initialVideoId: _post.videoUrl,
       params: const YoutubePlayerParams(
         showControls: true,
         showFullscreenButton: true,
@@ -75,6 +84,10 @@ class _FullMessageState extends State<FullMessage> {
 
   @override
   Widget build(BuildContext context) {
+    _post = widget.post;
+
+    print('INSIDE FULL MESSAGE BUILD');
+
     const player = YoutubePlayerIFrame(
       gestureRecognizers: <Factory<OneSequenceGestureRecognizer>>{},
     );
@@ -85,6 +98,11 @@ class _FullMessageState extends State<FullMessage> {
         color: Colors.black,
       ));
     }
+    print(
+        'inside FULL MESSAGE _post.plus.contains(user.uid): ${_post.plus.contains(user.uid)}');
+    print(
+        'inside FULL MESSAGE _post.plus.contains(user.uid): ${_post.plus.contains(user.uid)}');
+
     return SafeArea(
       child: Scaffold(
         backgroundColor: Colors.white,
@@ -138,377 +156,447 @@ class _FullMessageState extends State<FullMessage> {
             ),
           ],
         ),
-        body: SingleChildScrollView(
-          child: Column(
-            children: [
-              YoutubePlayerControllerProvider(
-                controller: controller,
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.only(
-                      top: 10.0,
-                      right: 10,
-                      left: 10,
-                    ),
-                    child: Column(
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.only(bottom: 8.0),
-                          child: Row(
-                            children: [
-                              CircleAvatar(
-                                backgroundImage: NetworkImage(
-                                  widget.snap['profImage'],
-                                ),
-                                radius: 18,
-                              ),
-                              Expanded(
-                                child: Padding(
-                                  padding: const EdgeInsets.only(
-                                    left: 16,
+        body: StreamBuilder(
+          stream: FirebaseFirestore.instance
+              .collection('posts')
+              .doc(_post.postId)
+              .snapshots(),
+          builder: (context,
+              AsyncSnapshot<DocumentSnapshot<Map<String, dynamic>>> snapshot) {
+            _post =
+                snapshot.data != null ? Post.fromSnap(snapshot.data!) : _post;
+            return SingleChildScrollView(
+              child: Column(
+                children: [
+                  YoutubePlayerControllerProvider(
+                    controller: controller,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.only(
+                          top: 10.0,
+                          right: 10,
+                          left: 10,
+                        ),
+                        child: Column(
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.only(bottom: 8.0),
+                              child: Row(
+                                children: [
+                                  CircleAvatar(
+                                    backgroundImage: NetworkImage(
+                                      _post.profImage,
+                                    ),
+                                    radius: 18,
                                   ),
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      RichText(
-                                        text: TextSpan(
-                                          children: [
-                                            TextSpan(
-                                              text: widget.snap['username'],
-                                              style: const TextStyle(
-                                                fontWeight: FontWeight.bold,
-                                                color: Colors.black,
-                                                letterSpacing: 1,
-                                                fontSize: 15,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
+                                  Expanded(
+                                    child: Padding(
+                                      padding: const EdgeInsets.only(
+                                        left: 16,
                                       ),
-                                      Padding(
-                                        padding: const EdgeInsets.only(top: 4),
-                                        child: Text(
-                                          DateFormat.yMMMd().format(widget
-                                              .snap['datePublished']
-                                              .toDate()),
-                                          style: const TextStyle(
-                                              fontSize: 14,
-                                              color: Color.fromARGB(
-                                                  255, 123, 122, 122)),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                              Expanded(
-                                child: Padding(
-                                  padding: const EdgeInsets.only(right: 4.0),
-                                  child: Container(
-                                    // color: Colors.brown,
-                                    alignment: Alignment.centerRight,
-                                    child: IconButton(
-                                      onPressed: () {
-                                        showDialog(
-                                          context: context,
-                                          builder: (context) => Dialog(
-                                            child: ListView(
-                                                padding:
-                                                    const EdgeInsets.symmetric(
-                                                  vertical: 16,
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          RichText(
+                                            text: TextSpan(
+                                              children: [
+                                                TextSpan(
+                                                  text: _post.username,
+                                                  style: const TextStyle(
+                                                    fontWeight: FontWeight.bold,
+                                                    color: Colors.black,
+                                                    letterSpacing: 1,
+                                                    fontSize: 15,
+                                                  ),
                                                 ),
-                                                shrinkWrap: true,
-                                                children: [
-                                                  'Delete',
-                                                ]
-                                                    .map(
-                                                      (e) => InkWell(
-                                                        onTap: () async {
-                                                          FirestoreMethods()
-                                                              .deletePost(widget
-                                                                      .snap[
-                                                                  'postId']);
-                                                          Navigator.of(context)
-                                                              .pop();
-                                                        },
-                                                        child: Container(
-                                                          padding:
-                                                              const EdgeInsets
+                                              ],
+                                            ),
+                                          ),
+                                          Padding(
+                                            padding:
+                                                const EdgeInsets.only(top: 4),
+                                            child: Text(
+                                              DateFormat.yMMMd().format(
+                                                  _post.datePublished.toDate()),
+                                              style: const TextStyle(
+                                                  fontSize: 14,
+                                                  color: Color.fromARGB(
+                                                      255, 123, 122, 122)),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                  Expanded(
+                                    child: Padding(
+                                      padding:
+                                          const EdgeInsets.only(right: 4.0),
+                                      child: Container(
+                                        // color: Colors.brown,
+                                        alignment: Alignment.centerRight,
+                                        child: IconButton(
+                                          onPressed: () {
+                                            showDialog(
+                                              context: context,
+                                              builder: (context) => Dialog(
+                                                child: ListView(
+                                                    padding: const EdgeInsets
+                                                        .symmetric(
+                                                      vertical: 16,
+                                                    ),
+                                                    shrinkWrap: true,
+                                                    children: [
+                                                      'Delete',
+                                                    ]
+                                                        .map(
+                                                          (e) => InkWell(
+                                                            onTap: () async {
+                                                              FirestoreMethods()
+                                                                  .deletePost(_post
+                                                                      .postId);
+                                                              Navigator.of(
+                                                                      context)
+                                                                  .pop();
+                                                            },
+                                                            child: Container(
+                                                              padding: const EdgeInsets
                                                                       .symmetric(
                                                                   vertical: 12,
                                                                   horizontal:
                                                                       16),
-                                                          child: Text(e),
-                                                        ),
-                                                      ),
-                                                    )
-                                                    .toList()),
-                                          ),
-                                        );
-                                      },
-                                      icon: const Icon(Icons.more_vert),
+                                                              child: Text(e),
+                                                            ),
+                                                          ),
+                                                        )
+                                                        .toList()),
+                                              ),
+                                            );
+                                          },
+                                          icon: const Icon(Icons.more_vert),
+                                        ),
+                                      ),
                                     ),
                                   ),
-                                ),
+                                ],
                               ),
-                            ],
-                          ),
-                        ),
-                        ConstrainedBox(
-                          constraints: BoxConstraints(
-                              // minHeight: 440.0,
-                              ),
-                          child: Container(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.start,
-                              children: [
-                                Padding(
-                                  padding: const EdgeInsets.only(bottom: 8.0),
-                                  child: Text('${widget.snap['title']}',
-                                      style: TextStyle(
-                                        color: Colors.black,
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.bold,
-                                      )),
-                                ),
-                                widget.snap['selected'] == 2
-                                    ? LayoutBuilder(
-                                        builder: (context, constraints) {
-                                          if (kIsWeb &&
-                                              constraints.maxWidth > 800) {
-                                            return Row(
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.start,
-                                              children: [
-                                                const Expanded(child: player),
-                                                const SizedBox(
-                                                  width: 500,
-                                                ),
-                                              ],
-                                            );
-                                          }
-                                          return Container(
-                                            width: 324,
-                                            child: Stack(
-                                              children: [
-                                                player,
-                                                Positioned.fill(
-                                                  child: YoutubeValueBuilder(
-                                                    controller: controller,
-                                                    builder: (context, value) {
-                                                      return AnimatedCrossFade(
-                                                        crossFadeState:
-                                                            value.isReady
+                            ),
+                            ConstrainedBox(
+                              constraints: BoxConstraints(
+                                  // minHeight: 440.0,
+                                  ),
+                              child: Container(
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.start,
+                                  children: [
+                                    Padding(
+                                      padding:
+                                          const EdgeInsets.only(bottom: 8.0),
+                                      child: Text('${_post.title}',
+                                          style: TextStyle(
+                                            color: Colors.black,
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.bold,
+                                          )),
+                                    ),
+                                    _post.selected == 2
+                                        ? LayoutBuilder(
+                                            builder: (context, constraints) {
+                                              if (kIsWeb &&
+                                                  constraints.maxWidth > 800) {
+                                                return Row(
+                                                  crossAxisAlignment:
+                                                      CrossAxisAlignment.start,
+                                                  children: [
+                                                    const Expanded(
+                                                        child: player),
+                                                    const SizedBox(
+                                                      width: 500,
+                                                    ),
+                                                  ],
+                                                );
+                                              }
+                                              return Container(
+                                                width: 324,
+                                                child: Stack(
+                                                  children: [
+                                                    player,
+                                                    Positioned.fill(
+                                                      child:
+                                                          YoutubeValueBuilder(
+                                                        controller: controller,
+                                                        builder:
+                                                            (context, value) {
+                                                          return AnimatedCrossFade(
+                                                            crossFadeState: value
+                                                                    .isReady
                                                                 ? CrossFadeState
                                                                     .showSecond
                                                                 : CrossFadeState
                                                                     .showFirst,
-                                                        duration:
-                                                            const Duration(
-                                                                milliseconds:
-                                                                    300),
-                                                        secondChild: Container(
-                                                            child:
-                                                                const SizedBox
+                                                            duration:
+                                                                const Duration(
+                                                                    milliseconds:
+                                                                        300),
+                                                            secondChild: Container(
+                                                                child: const SizedBox
                                                                     .shrink()),
-                                                        firstChild: Material(
-                                                          child: DecoratedBox(
-                                                            child: const Center(
+                                                            firstChild:
+                                                                Material(
                                                               child:
-                                                                  CircularProgressIndicator(),
-                                                            ),
-                                                            decoration:
-                                                                BoxDecoration(
-                                                              image:
-                                                                  DecorationImage(
-                                                                image:
-                                                                    NetworkImage(
-                                                                  YoutubePlayerController
-                                                                      .getThumbnail(
-                                                                    videoId:
-                                                                        controller
-                                                                            .initialVideoId,
-                                                                    quality:
-                                                                        ThumbnailQuality
-                                                                            .medium,
+                                                                  DecoratedBox(
+                                                                child:
+                                                                    const Center(
+                                                                  child:
+                                                                      CircularProgressIndicator(),
+                                                                ),
+                                                                decoration:
+                                                                    BoxDecoration(
+                                                                  image:
+                                                                      DecorationImage(
+                                                                    image:
+                                                                        NetworkImage(
+                                                                      YoutubePlayerController
+                                                                          .getThumbnail(
+                                                                        videoId:
+                                                                            controller.initialVideoId,
+                                                                        quality:
+                                                                            ThumbnailQuality.medium,
+                                                                      ),
+                                                                    ),
                                                                   ),
                                                                 ),
                                                               ),
                                                             ),
-                                                          ),
+                                                          );
+                                                        },
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              );
+                                            },
+                                          )
+                                        : _post.selected == 1
+                                            ? Padding(
+                                                padding: const EdgeInsets.only(
+                                                    right: 0.0),
+                                                child: Material(
+                                                  child: InkWell(
+                                                    onTap: () {
+                                                      showDialog(
+                                                        context: context,
+                                                        builder: (context) =>
+                                                            Column(
+                                                          children: [
+                                                            Container(
+                                                              decoration:
+                                                                  BoxDecoration(
+                                                                borderRadius:
+                                                                    BorderRadius
+                                                                        .circular(
+                                                                            100),
+                                                                color: Colors
+                                                                    .white,
+                                                              ),
+                                                              width: 45,
+                                                              alignment: Alignment
+                                                                  .bottomLeft,
+                                                              child: Material(
+                                                                color: Colors
+                                                                    .transparent,
+                                                                child:
+                                                                    IconButton(
+                                                                  onPressed:
+                                                                      () {
+                                                                    Navigator.pop(
+                                                                        context);
+                                                                  },
+                                                                  icon: const Icon(
+                                                                      Icons
+                                                                          .close,
+                                                                      color: Colors
+                                                                          .black),
+                                                                ),
+                                                              ),
+                                                            ),
+                                                            SimpleDialog(
+                                                                contentPadding:
+                                                                    EdgeInsets
+                                                                        .zero,
+                                                                insetPadding: EdgeInsets
+                                                                    .symmetric(
+                                                                        horizontal:
+                                                                            8,
+                                                                        vertical:
+                                                                            8),
+                                                                children: [
+                                                                  InteractiveViewer(
+                                                                    clipBehavior:
+                                                                        Clip.none,
+                                                                    minScale: 1,
+                                                                    maxScale: 4,
+                                                                    child:
+                                                                        Container(
+                                                                      color: Colors
+                                                                          .black,
+                                                                      height: MediaQuery.of(context)
+                                                                              .size
+                                                                              .height *
+                                                                          0.87,
+                                                                      width: MediaQuery.of(context)
+                                                                              .size
+                                                                              .width *
+                                                                          0.9,
+                                                                      child: Image
+                                                                          .network(
+                                                                        _post
+                                                                            .postUrl,
+                                                                      ),
+                                                                    ),
+                                                                  ),
+                                                                ]),
+                                                          ],
                                                         ),
                                                       );
                                                     },
+                                                    child: Container(
+                                                      height: 182,
+                                                      width: 324,
+                                                      color: Color.fromARGB(
+                                                          255, 239, 238, 238),
+                                                      child: FittedBox(
+                                                        fit: BoxFit.contain,
+                                                        child: Image.network(
+                                                          _post.postUrl,
+                                                          // fit: BoxFit.fill,
+                                                        ),
+                                                      ),
+                                                    ),
                                                   ),
                                                 ),
-                                              ],
-                                            ),
-                                          );
-                                        },
-                                      )
-                                    : widget.snap['selected'] == 1
+                                              )
+                                            : Container(),
+                                    _post.body != ""
                                         ? Padding(
                                             padding: const EdgeInsets.only(
-                                                right: 0.0),
-                                            child: Material(
-                                              child: InkWell(
-                                                onTap: () {
-                                                  showDialog(
-                                                    context: context,
-                                                    builder: (context) =>
-                                                        Column(
-                                                      children: [
-                                                        Container(
-                                                          decoration:
-                                                              BoxDecoration(
-                                                            borderRadius:
-                                                                BorderRadius
-                                                                    .circular(
-                                                                        100),
-                                                            color: Colors.white,
-                                                          ),
-                                                          width: 45,
-                                                          alignment: Alignment
-                                                              .bottomLeft,
-                                                          child: Material(
-                                                            color: Colors
-                                                                .transparent,
-                                                            child: IconButton(
-                                                              onPressed: () {
-                                                                Navigator.pop(
-                                                                    context);
-                                                              },
-                                                              icon: const Icon(
-                                                                  Icons.close,
-                                                                  color: Colors
-                                                                      .black),
+                                              top: 8.0,
+                                              bottom: 14,
+                                            ),
+                                            child: Text('${_post.body}'),
+                                          )
+                                        : Padding(
+                                            padding: const EdgeInsets.only(
+                                                bottom: 14.0),
+                                            child: Container(),
+                                          ),
+                                    Padding(
+                                      padding: const EdgeInsets.only(
+                                        top: 10,
+                                      ),
+                                      child: Container(
+                                        height: 60,
+                                        decoration: BoxDecoration(
+                                          border: Border(
+                                            top: BorderSide(
+                                                width: 1,
+                                                color: Color.fromARGB(
+                                                    255, 218, 216, 216)),
+                                          ),
+                                        ),
+                                        child: Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.spaceEvenly,
+                                          children: [
+                                            Container(
+                                              child: Stack(
+                                                children: [
+                                                  Container(
+                                                    alignment:
+                                                        Alignment.topCenter,
+                                                    height: 60,
+                                                    width: 59,
+                                                    // color: Colors.orange,
+                                                    child: IconButton(
+                                                      iconSize: 25,
+                                                      onPressed: () async {
+                                                        await FirestoreMethods()
+                                                            .plusMessage(
+                                                          _post.postId,
+                                                          user.uid,
+                                                          _post.plus,
+                                                        );
+                                                      },
+                                                      icon: _post.plus.contains(
+                                                              user.uid)
+                                                          ? const Icon(
+                                                              Icons.add_circle,
+                                                              color:
+                                                                  Colors.green,
+                                                            )
+                                                          : const Icon(
+                                                              Icons.add_circle,
+                                                              color: Color
+                                                                  .fromARGB(
+                                                                      255,
+                                                                      206,
+                                                                      204,
+                                                                      204),
                                                             ),
-                                                          ),
-                                                        ),
-                                                        SimpleDialog(
-                                                            contentPadding:
-                                                                EdgeInsets.zero,
-                                                            insetPadding: EdgeInsets
-                                                                .symmetric(
-                                                                    horizontal:
-                                                                        8,
-                                                                    vertical:
-                                                                        8),
-                                                            children: [
-                                                              InteractiveViewer(
-                                                                clipBehavior:
-                                                                    Clip.none,
-                                                                minScale: 1,
-                                                                maxScale: 4,
-                                                                child:
-                                                                    Container(
-                                                                  color: Colors
-                                                                      .black,
-                                                                  height: MediaQuery.of(
-                                                                              context)
-                                                                          .size
-                                                                          .height *
-                                                                      0.87,
-                                                                  width: MediaQuery.of(
-                                                                              context)
-                                                                          .size
-                                                                          .width *
-                                                                      0.9,
-                                                                  child: Image
-                                                                      .network(
-                                                                    widget.snap[
-                                                                        'postUrl'],
-                                                                  ),
-                                                                ),
-                                                              ),
-                                                            ]),
-                                                      ],
-                                                    ),
-                                                  );
-                                                },
-                                                child: Container(
-                                                  height: 182,
-                                                  width: 324,
-                                                  color: Color.fromARGB(
-                                                      255, 239, 238, 238),
-                                                  child: FittedBox(
-                                                    fit: BoxFit.contain,
-                                                    child: Image.network(
-                                                      widget.snap['postUrl'],
-                                                      // fit: BoxFit.fill,
                                                     ),
                                                   ),
-                                                ),
+                                                  Positioned(
+                                                    top: 42,
+                                                    child: Container(
+                                                      width: 59,
+                                                      alignment:
+                                                          Alignment.center,
+                                                      child: Text(
+                                                          '${_post.plus.length}',
+                                                          // '32.4k',
+                                                          style: TextStyle(
+                                                              fontSize: 13,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .bold)),
+                                                    ),
+                                                  ),
+                                                ],
                                               ),
                                             ),
-                                          )
-                                        : Container(),
-                                widget.snap['body'] != ""
-                                    ? Padding(
-                                        padding: const EdgeInsets.only(
-                                          top: 8.0,
-                                          bottom: 14,
-                                        ),
-                                        child: Text('${widget.snap['body']}'),
-                                      )
-                                    : Padding(
-                                        padding:
-                                            const EdgeInsets.only(bottom: 14.0),
-                                        child: Container(),
-                                      ),
-                                Padding(
-                                  padding: const EdgeInsets.only(
-                                    top: 10,
-                                  ),
-                                  child: Container(
-                                    height: 60,
-                                    decoration: BoxDecoration(
-                                      border: Border(
-                                        top: BorderSide(
-                                            width: 1,
-                                            color: Color.fromARGB(
-                                                255, 218, 216, 216)),
-                                      ),
-                                    ),
-                                    child: Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceEvenly,
-                                      children: [
-                                        Container(
-                                          child: Stack(
-                                            children: [
-                                              Container(
-                                                alignment: Alignment.topCenter,
-                                                height: 60,
-                                                width: 59,
-                                                // color: Colors.orange,
-                                                child: LikeAnimation(
-                                                  isAnimating: widget
-                                                      .snap['plus']
-                                                      .contains(user.uid),
+                                            Stack(
+                                              children: [
+                                                Container(
+                                                  alignment:
+                                                      Alignment.topCenter,
+                                                  height: 60,
+                                                  width: 59,
                                                   child: IconButton(
                                                     iconSize: 25,
                                                     onPressed: () async {
                                                       await FirestoreMethods()
-                                                          .plusMessage(
-                                                        widget.snap['postId'],
+                                                          .minusMessage(
+                                                        _post.postId,
                                                         user.uid,
-                                                        widget.snap['plus'],
+                                                        _post.minus,
                                                       );
                                                     },
-                                                    icon: widget.snap['plus']
+                                                    icon: _post.minus
                                                             .contains(user.uid)
                                                         ? Icon(
-                                                            Icons.add_circle,
-                                                            color: Colors.green,
+                                                            Icons
+                                                                .do_not_disturb_on,
+                                                            color: Colors.red,
                                                           )
                                                         : Icon(
-                                                            Icons.add_circle,
+                                                            Icons
+                                                                .do_not_disturb_on,
                                                             color:
                                                                 Color.fromARGB(
                                                                     255,
@@ -518,259 +606,64 @@ class _FullMessageState extends State<FullMessage> {
                                                           ),
                                                   ),
                                                 ),
-                                              ),
-                                              Positioned(
-                                                top: 42,
-                                                child: Container(
-                                                  width: 59,
-                                                  alignment: Alignment.center,
-                                                  child: Text(
-                                                      '${widget.snap['plus'].length}',
-                                                      // '32.4k',
-                                                      style: TextStyle(
-                                                          fontSize: 13,
-                                                          fontWeight:
-                                                              FontWeight.bold)),
+                                                Positioned(
+                                                  top: 42,
+                                                  child: Container(
+                                                    width: 59,
+                                                    alignment: Alignment.center,
+                                                    child: Text(
+                                                        '${_post.minus.length}',
+                                                        style: TextStyle(
+                                                            fontSize: 13,
+                                                            fontWeight:
+                                                                FontWeight
+                                                                    .bold)),
+                                                  ),
                                                 ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                        Stack(
-                                          children: [
-                                            Container(
-                                              alignment: Alignment.topCenter,
-                                              height: 60,
-                                              width: 59,
-                                              child: LikeAnimation(
-                                                isAnimating: widget
-                                                    .snap['minus']
-                                                    .contains(user.uid),
-                                                child: IconButton(
-                                                  iconSize: 25,
-                                                  onPressed: () async {
-                                                    await FirestoreMethods()
-                                                        .minusMessage(
-                                                      widget.snap['postId'],
-                                                      user.uid,
-                                                      widget.snap['minus'],
-                                                    );
-                                                  },
-                                                  icon: widget.snap['minus']
-                                                          .contains(user.uid)
-                                                      ? Icon(
-                                                          Icons
-                                                              .do_not_disturb_on,
-                                                          color: Colors.red,
-                                                        )
-                                                      : Icon(
-                                                          Icons
-                                                              .do_not_disturb_on,
-                                                          color: Color.fromARGB(
-                                                              255,
-                                                              206,
-                                                              204,
-                                                              204),
-                                                        ),
-                                                ),
-                                              ),
-                                            ),
-                                            Positioned(
-                                              top: 42,
-                                              child: Container(
-                                                width: 59,
-                                                alignment: Alignment.center,
-                                                child: Text(
-                                                    '${widget.snap['minus'].length}',
-                                                    style: TextStyle(
-                                                        fontSize: 13,
-                                                        fontWeight:
-                                                            FontWeight.bold)),
-                                              ),
+                                              ],
                                             ),
                                           ],
                                         ),
-                                      ],
+                                      ),
                                     ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-              Container(
-                height: 12,
-                color: Color.fromARGB(255, 236, 234, 234),
-              ),
-              Padding(
-                padding: const EdgeInsets.only(right: 8.0, left: 8),
-                child: Container(
-                  color: Colors.white,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.only(
-                          right: 8,
-                          left: 8,
-                          top: 16,
-                          bottom: 8,
-                        ),
-                        child: Container(
-                          height: 30,
-                          child: Text('Comments (8)',
-                              style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 18,
-                                  letterSpacing: 0.8)),
-                        ),
-                      ),
-                      filter == false
-                          ? InkWell(
-                              onTap: () {
-                                setState(() {
-                                  filter = !filter;
-                                });
-                              },
-                              child: Container(
-                                width: 30,
-                                height: 30,
-                                child: const Icon(Icons.filter_list,
-                                    color: Colors.black),
-                              ),
-                            )
-                          : Container(),
-                    ],
-                  ),
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.only(
-                  right: 8.0,
-                  left: 8,
-                  bottom: 12,
-                ),
-                child: Container(
-                  color: Colors.white,
-                  child: PhysicalModel(
-                    color: Color.fromARGB(255, 247, 245, 245),
-                    elevation: 2,
-                    // shadowColor: Colors.black,
-                    borderRadius: BorderRadius.circular(0),
-                    child: Row(
-                      children: [
-                        Container(
-                          // color: Colors.orange,
-                          child: Padding(
-                            padding: const EdgeInsets.only(left: 8.0),
-                            child: CircleAvatar(
-                              backgroundImage: NetworkImage(
-                                user.photoUrl,
-                              ),
-                              radius: 18,
-                            ),
-                          ),
-                        ),
-                        Expanded(
-                          child: Padding(
-                            padding:
-                                const EdgeInsets.only(left: 16, right: 8.0),
-                            child: Container(
-                              child: TextField(
-                                controller: _commentController,
-                                maxLines: null,
-                                decoration: InputDecoration(
-                                  hintText: 'Write a comment...',
-                                  // hintText: 'Comment as ${user.username}',
-                                  border: InputBorder.none,
-                                  hintStyle: TextStyle(
-                                      fontStyle: FontStyle.italic,
-                                      color: Colors.grey),
-                                  labelStyle: TextStyle(color: Colors.black),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                        InkWell(
-                          onTap: () async {
-                            await FirestoreMethods().postComment(
-                                widget.snap['postId'],
-                                _commentController.text,
-                                user.uid,
-                                user.username,
-                                user.photoUrl);
-                            setState(() {
-                              _commentController.text = "";
-                            });
-                          },
-                          child: Padding(
-                            padding: const EdgeInsets.only(right: 8.0),
-                            child: Row(
-                              children: [
-                                Icon(Icons.send,
-                                    color: Colors.blueAccent, size: 12),
-                                Container(width: 3),
-                                Text(
-                                  'SEND',
-                                  style: TextStyle(
-                                    color: Colors.blueAccent,
-                                    letterSpacing: 0.5,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-              filter == false
-                  ? Container()
-                  : Container(
-                      // decoration: BoxDecoration(
-                      //   // color: Colors.blue,
-                      //   border: Border(
-                      //     top: BorderSide(
-                      //         width: 1,
-                      //         color: Color.fromARGB(255, 218, 216, 216)),
-                      //   ),
-                      // ),
-                      height: 108,
-                      child: Padding(
-                        padding: const EdgeInsets.only(
-                          right: 8.0,
-                          left: 16,
-                          top: 10,
-                        ),
-                        child: Column(
-                          children: [
-                            Row(
-                              children: [
-                                Text(
-                                  'Sort:   ',
-                                  style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 15,
-                                      letterSpacing: 0.8),
-                                ),
-                                Row(
-                                  children: [
-                                    filterCommentOne(0, text: 'Most Popular'),
-                                    filterCommentOne(1, text: 'Most Recent'),
                                   ],
                                 ),
-                                Container(
-                                  width: 22,
-                                ),
-                                InkWell(
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                  Container(
+                    height: 12,
+                    color: Color.fromARGB(255, 236, 234, 234),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.only(right: 8.0, left: 8),
+                    child: Container(
+                      color: Colors.white,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.only(
+                              right: 8,
+                              left: 8,
+                              top: 16,
+                              bottom: 8,
+                            ),
+                            child: Container(
+                              height: 30,
+                              child: Text('Comments (8)',
+                                  style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 18,
+                                      letterSpacing: 0.8)),
+                            ),
+                          ),
+                          filter == false
+                              ? InkWell(
                                   onTap: () {
                                     setState(() {
                                       filter = !filter;
@@ -779,82 +672,244 @@ class _FullMessageState extends State<FullMessage> {
                                   child: Container(
                                     width: 30,
                                     height: 30,
-                                    // color: Colors.blue,
-                                    child: Icon(
-                                      Icons.close,
+                                    child: const Icon(Icons.filter_list,
+                                        color: Colors.black),
+                                  ),
+                                )
+                              : Container(),
+                        ],
+                      ),
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.only(
+                      right: 8.0,
+                      left: 8,
+                      bottom: 12,
+                    ),
+                    child: Container(
+                      color: Colors.white,
+                      child: PhysicalModel(
+                        color: Color.fromARGB(255, 247, 245, 245),
+                        elevation: 2,
+                        // shadowColor: Colors.black,
+                        borderRadius: BorderRadius.circular(0),
+                        child: Row(
+                          children: [
+                            Container(
+                              // color: Colors.orange,
+                              child: Padding(
+                                padding: const EdgeInsets.only(left: 8.0),
+                                child: CircleAvatar(
+                                  backgroundImage: NetworkImage(
+                                    user.photoUrl,
+                                  ),
+                                  radius: 18,
+                                ),
+                              ),
+                            ),
+                            Expanded(
+                              child: Padding(
+                                padding:
+                                    const EdgeInsets.only(left: 16, right: 8.0),
+                                child: Container(
+                                  child: TextField(
+                                    controller: _commentController,
+                                    maxLines: null,
+                                    decoration: InputDecoration(
+                                      hintText: 'Write a comment...',
+                                      // hintText: 'Comment as ${user.username}',
+                                      border: InputBorder.none,
+                                      hintStyle: TextStyle(
+                                          fontStyle: FontStyle.italic,
+                                          color: Colors.grey),
+                                      labelStyle:
+                                          TextStyle(color: Colors.black),
                                     ),
                                   ),
                                 ),
-                              ],
+                              ),
                             ),
-                            Container(height: 10),
-                            Padding(
-                              padding: const EdgeInsets.only(bottom: 8.0),
-                              child: Row(
-                                children: [
-                                  Text('Filter: ',
+                            InkWell(
+                              onTap: () async {
+                                await FirestoreMethods().postComment(
+                                    _post.postId,
+                                    _commentController.text,
+                                    user.uid,
+                                    user.username,
+                                    user.photoUrl);
+                                setState(() {
+                                  _commentController.text = "";
+                                });
+                              },
+                              child: Padding(
+                                padding: const EdgeInsets.only(right: 8.0),
+                                child: Row(
+                                  children: [
+                                    Icon(Icons.send,
+                                        color: Colors.blueAccent, size: 12),
+                                    Container(width: 3),
+                                    Text(
+                                      'SEND',
                                       style: TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 15,
-                                          letterSpacing: 0.8)),
-                                  Container(
-                                    height: 39,
-                                    width: 286,
-                                    child: SingleChildScrollView(
-                                      scrollDirection: Axis.horizontal,
-                                      child: Padding(
-                                        padding:
-                                            const EdgeInsets.only(left: 2.0),
-                                        child: Row(
-                                          children: [
-                                            filterCommentTwo(
-                                              0,
-                                              Icons.clear_all,
-                                              text: 'All',
-                                            ),
-                                            filterCommentTwo(
-                                                1, Icons.add_circle,
-                                                text: 'Voted  '),
-                                            filterCommentTwo(
-                                                2, Icons.do_not_disturb_on,
-                                                text: 'Voted  '),
-                                          ],
-                                        ),
+                                        color: Colors.blueAccent,
+                                        letterSpacing: 0.5,
                                       ),
                                     ),
-                                  ),
-                                ],
+                                  ],
+                                ),
                               ),
                             ),
                           ],
                         ),
                       ),
                     ),
-              StreamBuilder(
-                stream: FirebaseFirestore.instance
-                    .collection('posts')
-                    .doc(widget.snap['postId'])
-                    .collection('comments')
-                    .orderBy('datePublished', descending: true)
-                    .snapshots(),
-                builder: (content, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Center(
-                      child: CircularProgressIndicator(),
-                    );
-                  }
-                  return ListView.builder(
-                    scrollDirection: Axis.vertical,
-                    shrinkWrap: true,
-                    physics: ScrollPhysics(),
-                    itemCount: (snapshot.data! as dynamic).docs.length,
-                    itemBuilder: (context, index) => CommentCard(
-                        snap: (snapshot.data! as dynamic).docs[index].data()),
-                  );
-                },
+                  ),
+                  filter == false
+                      ? Container()
+                      : Container(
+                          // decoration: BoxDecoration(
+                          //   // color: Colors.blue,
+                          //   border: Border(
+                          //     top: BorderSide(
+                          //         width: 1,
+                          //         color: Color.fromARGB(255, 218, 216, 216)),
+                          //   ),
+                          // ),
+                          height: 108,
+                          child: Padding(
+                            padding: const EdgeInsets.only(
+                              right: 8.0,
+                              left: 16,
+                              top: 10,
+                            ),
+                            child: Column(
+                              children: [
+                                Row(
+                                  children: [
+                                    Text(
+                                      'Sort:   ',
+                                      style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 15,
+                                          letterSpacing: 0.8),
+                                    ),
+                                    Row(
+                                      children: [
+                                        filterCommentOne(0,
+                                            text: 'Most Popular'),
+                                        filterCommentOne(1,
+                                            text: 'Most Recent'),
+                                      ],
+                                    ),
+                                    Container(
+                                      width: 22,
+                                    ),
+                                    InkWell(
+                                      onTap: () {
+                                        setState(() {
+                                          filter = !filter;
+                                        });
+                                      },
+                                      child: Container(
+                                        width: 30,
+                                        height: 30,
+                                        // color: Colors.blue,
+                                        child: Icon(
+                                          Icons.close,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                Container(height: 10),
+                                Padding(
+                                  padding: const EdgeInsets.only(bottom: 8.0),
+                                  child: Row(
+                                    children: [
+                                      Text('Filter: ',
+                                          style: TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 15,
+                                              letterSpacing: 0.8)),
+                                      Container(
+                                        height: 39,
+                                        width: 286,
+                                        child: SingleChildScrollView(
+                                          scrollDirection: Axis.horizontal,
+                                          child: Padding(
+                                            padding: const EdgeInsets.only(
+                                                left: 2.0),
+                                            child: Row(
+                                              children: [
+                                                filterCommentTwo(
+                                                  0,
+                                                  Icons.clear_all,
+                                                  text: 'All',
+                                                ),
+                                                filterCommentTwo(
+                                                    1, Icons.add_circle,
+                                                    text: 'Voted  '),
+                                                filterCommentTwo(
+                                                    2, Icons.do_not_disturb_on,
+                                                    text: 'Voted  '),
+                                              ],
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                  StreamBuilder(
+                    stream: FirebaseFirestore.instance
+                        .collection('posts')
+                        .doc(_post.postId)
+                        .collection('comments')
+                        .orderBy('datePublished', descending: true)
+                        .snapshots(),
+                    builder: (content, snapshot) {
+                      print(
+                          'BEFORE SNAPSHOT _post.comments: ${widget.post.comments}');
+
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return widget.post.comments == null
+                            ? const Center(
+                                child: CircularProgressIndicator(),
+                              )
+                            : CommentList(
+                                commentSnaps:
+                                    (widget.post.comments as dynamic).docs,
+                                post: widget.post,
+                                parentSetState: () {
+                                  setState(() {});
+                                },
+                              );
+                      }
+                      print(
+                          '(snapshot.data! as dynamic).docs.runtimeType: ${(snapshot.data! as dynamic).docs.runtimeType}');
+                      widget.post.comments = (snapshot.data! as dynamic);
+
+                      print(
+                          'AFTER SNAPSHOT _post.comments: ${widget.post.comments}');
+
+                      return CommentList(
+                        commentSnaps: (snapshot.data! as dynamic).docs,
+                        post: _post,
+                        parentSetState: () {
+                          setState(() {});
+                        },
+                      );
+                    },
+                  ),
+                ],
               ),
-            ],
-          ),
+            );
+          },
         ),
       ),
     );
@@ -941,6 +996,39 @@ class _FullMessageState extends State<FullMessage> {
           selectedTwo = index;
         },
       ),
+    );
+  }
+}
+
+class CommentList extends StatelessWidget {
+  final commentSnaps;
+  final Post post;
+  final Function parentSetState;
+
+  const CommentList({
+    super.key,
+    required this.commentSnaps,
+    required this.post,
+    required this.parentSetState,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView.builder(
+      scrollDirection: Axis.vertical,
+      shrinkWrap: true,
+      physics: ScrollPhysics(),
+      itemCount: commentSnaps.length,
+      itemBuilder: (context, index) {
+        var commentSnap = commentSnaps[index].data();
+        return CommentCard(
+          snap: commentSnap,
+          postId: post.postId,
+          minus: post.minus.contains(commentSnap['uid']),
+          plus: post.plus.contains(commentSnap['uid']),
+          parentSetState: parentSetState,
+        );
+      },
     );
   }
 }

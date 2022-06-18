@@ -1,5 +1,5 @@
 import 'dart:developer';
-
+import 'package:aft/ATESTS/models/APost.dart';
 import 'package:aft/ATESTS/screens/full_message.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+
 // import 'package:youtube_player_flutter/youtube_player_flutter.dart';
 import 'package:youtube_player_iframe/youtube_player_iframe.dart';
 
@@ -18,10 +19,11 @@ import '../other/AUtils.dart';
 import 'ALikeAnimation.dart';
 
 class PostCardTest extends StatefulWidget {
-  final snap;
+  final Post post;
+
   const PostCardTest({
     Key? key,
-    required this.snap,
+    required this.post,
   }) : super(key: key);
 
   @override
@@ -29,6 +31,7 @@ class PostCardTest extends StatefulWidget {
 }
 
 class _PostCardTestState extends State<PostCardTest> {
+  late Post _post;
   late YoutubePlayerController controller;
   bool isLikeAnimating = false;
   int commentLen = 0;
@@ -37,9 +40,11 @@ class _PostCardTestState extends State<PostCardTest> {
 
   @override
   void initState() {
+    print('POST CARD TEST INIT CALLED');
+    _post = widget.post;
     super.initState();
     controller = YoutubePlayerController(
-      initialVideoId: '${widget.snap['videoUrl']}',
+      initialVideoId: _post.videoUrl,
       params: const YoutubePlayerParams(
         showControls: true,
         showFullscreenButton: true,
@@ -65,7 +70,7 @@ class _PostCardTestState extends State<PostCardTest> {
     try {
       QuerySnapshot snap = await FirebaseFirestore.instance
           .collection('posts')
-          .doc(widget.snap['postId'])
+          .doc(_post.postId)
           .collection('comments')
           .get();
 
@@ -95,6 +100,7 @@ class _PostCardTestState extends State<PostCardTest> {
 
   @override
   Widget build(BuildContext context) {
+    _post = widget.post;
     const player = YoutubePlayerIFrame(
       gestureRecognizers: <Factory<OneSequenceGestureRecognizer>>{},
     );
@@ -134,7 +140,7 @@ class _PostCardTestState extends State<PostCardTest> {
                     children: [
                       CircleAvatar(
                         radius: 20,
-                        backgroundImage: NetworkImage(widget.snap['profImage']),
+                        backgroundImage: NetworkImage(_post.profImage),
                       ),
                       SizedBox(width: 8),
                       Align(
@@ -147,9 +153,9 @@ class _PostCardTestState extends State<PostCardTest> {
                               Container(
                                 // color: Colors.grey,
 
-                                child: widget.snap['global'] == 'true'
+                                child: _post.global == 'true'
                                     ? Text(
-                                        widget.snap['username'],
+                                        _post.username,
                                         textAlign: TextAlign.start,
                                         style: TextStyle(
                                             fontSize: 15,
@@ -162,7 +168,7 @@ class _PostCardTestState extends State<PostCardTest> {
                               SizedBox(height: 4),
                               Text(
                                 DateFormat.yMMMd().format(
-                                  widget.snap['datePublished'].toDate(),
+                                  _post.datePublished.toDate(),
                                 ),
                                 style: const TextStyle(
                                     fontSize: 14, color: Colors.grey),
@@ -193,8 +199,8 @@ class _PostCardTestState extends State<PostCardTest> {
                                             .map(
                                               (e) => InkWell(
                                                 onTap: () async {
-                                                  FirestoreMethods().deletePost(
-                                                      widget.snap['postId']);
+                                                  FirestoreMethods()
+                                                      .deletePost(_post.postId);
                                                   Navigator.of(context).pop();
                                                 },
                                                 child: Container(
@@ -273,8 +279,7 @@ class _PostCardTestState extends State<PostCardTest> {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                            builder: (context) =>
-                                FullMessage(snap: widget.snap)),
+                            builder: (context) => FullMessage(post: _post)),
                       );
                     },
                     child: Container(
@@ -294,7 +299,7 @@ class _PostCardTestState extends State<PostCardTest> {
                               alignment: Alignment.center,
                               width: 300,
                               child: Text(
-                                '${widget.snap['title']}',
+                                '${_post.title}',
                                 // maxLines: 8,
                                 // overflow: TextOverflow.ellipsis,
                                 style: TextStyle(
@@ -303,7 +308,7 @@ class _PostCardTestState extends State<PostCardTest> {
                             ),
                           ),
                           SizedBox(height: 8),
-                          widget.snap['selected'] == 1
+                          _post.selected == 1
                               ? InkWell(
                                   onTap: () {
                                     showDialog(
@@ -353,7 +358,7 @@ class _PostCardTestState extends State<PostCardTest> {
                                                                 .width *
                                                             0.9,
                                                     child: Image.network(
-                                                      widget.snap['postUrl'],
+                                                      _post.postUrl,
                                                     ),
                                                   ),
                                                 ),
@@ -372,13 +377,13 @@ class _PostCardTestState extends State<PostCardTest> {
                                       alignment: Alignment.center,
                                       fit: BoxFit.contain,
                                       child: Image.network(
-                                        widget.snap['postUrl'],
+                                        _post.postUrl,
                                         // fit: BoxFit.fill,
                                       ),
                                     ),
                                   ),
                                 )
-                              : widget.snap['selected'] == 2
+                              : _post.selected == 2
                                   ? LayoutBuilder(
                                       builder: (context, constraints) {
                                       if (kIsWeb &&
@@ -479,18 +484,17 @@ class _PostCardTestState extends State<PostCardTest> {
                               width: 59,
                               // color: Colors.orange,
                               child: LikeAnimation(
-                                isAnimating:
-                                    widget.snap['plus'].contains(user.uid),
+                                isAnimating: _post.plus.contains(user.uid),
                                 child: IconButton(
                                   iconSize: 25,
                                   onPressed: () async {
                                     await FirestoreMethods().plusMessage(
-                                      widget.snap['postId'],
+                                      _post.postId,
                                       user.uid,
-                                      widget.snap['plus'],
+                                      _post.plus,
                                     );
                                   },
-                                  icon: widget.snap['plus'].contains(user.uid)
+                                  icon: _post.plus.contains(user.uid)
                                       ? Icon(
                                           Icons.add_circle,
                                           color: Colors.green,
@@ -508,7 +512,7 @@ class _PostCardTestState extends State<PostCardTest> {
                               child: Container(
                                 width: 59,
                                 alignment: Alignment.center,
-                                child: Text('${widget.snap['plus'].length}',
+                                child: Text('${_post.plus.length}',
                                     // '32.4k',
                                     style: TextStyle(
                                         fontSize: 13,
@@ -525,18 +529,17 @@ class _PostCardTestState extends State<PostCardTest> {
                             height: 60,
                             width: 59,
                             child: LikeAnimation(
-                              isAnimating:
-                                  widget.snap['minus'].contains(user.uid),
+                              isAnimating: _post.minus.contains(user.uid),
                               child: IconButton(
                                 iconSize: 25,
                                 onPressed: () async {
                                   await FirestoreMethods().minusMessage(
-                                    widget.snap['postId'],
+                                    _post.postId,
                                     user.uid,
-                                    widget.snap['minus'],
+                                    _post.minus,
                                   );
                                 },
-                                icon: widget.snap['minus'].contains(user.uid)
+                                icon: _post.minus.contains(user.uid)
                                     ? Icon(
                                         Icons.do_not_disturb_on,
                                         color: Colors.red,
@@ -554,7 +557,7 @@ class _PostCardTestState extends State<PostCardTest> {
                             child: Container(
                               width: 59,
                               alignment: Alignment.center,
-                              child: Text('${widget.snap['minus'].length}',
+                              child: Text('${_post.minus.length}',
                                   style: TextStyle(
                                       fontSize: 13,
                                       fontWeight: FontWeight.bold)),
@@ -586,7 +589,7 @@ class _PostCardTestState extends State<PostCardTest> {
                       onTap: () => Navigator.of(context).push(
                         MaterialPageRoute(
                           builder: (context) => FullMessage(
-                            snap: widget.snap,
+                            post: _post,
                           ),
                         ),
                       ),
@@ -598,7 +601,7 @@ class _PostCardTestState extends State<PostCardTest> {
                               onTap: () => Navigator.of(context).push(
                                 MaterialPageRoute(
                                   builder: (context) => FullMessage(
-                                    snap: widget.snap,
+                                    post: _post,
                                   ),
                                 ),
                               ),
@@ -613,7 +616,7 @@ class _PostCardTestState extends State<PostCardTest> {
                               onTap: () => Navigator.of(context).push(
                                 MaterialPageRoute(
                                   builder: (context) => FullMessage(
-                                    snap: widget.snap,
+                                    post: _post,
                                   ),
                                 ),
                               ),

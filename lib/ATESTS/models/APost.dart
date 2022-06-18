@@ -7,18 +7,19 @@ class Post {
   final String uid;
   final String username;
   final String profImage;
-  final datePublished;
   final String global;
   final String title;
   final String body;
   final String videoUrl;
   final String postUrl;
-  final int selected;
-  final plus;
-  final neutral;
-  final minus;
+  final List<String> plus;
+  final List<String> neutral;
+  final List<String> minus;
+  final int? selected;
+  final datePublished;
+  dynamic comments;
 
-  const Post({
+  Post({
     required this.postId,
     required this.uid,
     required this.username,
@@ -56,20 +57,20 @@ class Post {
     var snapshot = snap.data() as Map<String, dynamic>;
 
     return Post(
-      postId: snapshot['postId'],
-      uid: snapshot['uid'],
-      username: snapshot['username'],
-      profImage: snapshot['profImage'],
-      datePublished: snapshot['datePublished'],
-      global: snapshot['global'],
-      title: snapshot['title'],
-      body: snapshot['body'],
-      videoUrl: snapshot['videoUrl'],
-      postUrl: snapshot['postUrl'],
+      postId: snapshot['postId'] ?? "",
+      uid: snapshot['uid'] ?? "",
+      username: snapshot['username'] ?? "",
+      profImage: snapshot['profImage'] ?? "",
+      global: snapshot['global'] ?? "",
+      title: snapshot['title'] ?? "",
+      body: snapshot['body'] ?? "",
+      videoUrl: snapshot['videoUrl'] ?? "",
+      postUrl: snapshot['postUrl'] ?? "",
+      plus: (snapshot['plus'] ?? []).cast<String>(),
+      neutral: (snapshot['neutral'] ?? []).cast<String>(),
+      minus: (snapshot['minus'] ?? []).cast<String>(),
       selected: snapshot['selected'],
-      plus: snapshot['plus'],
-      neutral: snapshot['neutral'],
-      minus: snapshot['minus'],
+      datePublished: snapshot['datePublished'],
     );
   }
 }
