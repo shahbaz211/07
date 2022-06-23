@@ -111,6 +111,10 @@ class _PostCardTestState extends State<PostCardTest> {
         color: Colors.black,
       ));
     }
+
+    print('_post.username: ${_post.username}');
+    print(' _post.global == true: ${_post.global == 'true'}');
+
     return YoutubePlayerControllerProvider(
       controller: controller,
       child: Padding(
@@ -152,18 +156,19 @@ class _PostCardTestState extends State<PostCardTest> {
                             children: [
                               Container(
                                 // color: Colors.grey,
-
-                                child: _post.global == 'true'
-                                    ? Text(
-                                        _post.username,
-                                        textAlign: TextAlign.start,
-                                        style: TextStyle(
-                                            fontSize: 15,
-                                            fontWeight: FontWeight.bold,
-                                            color: Colors.black,
-                                            letterSpacing: 1),
-                                      )
-                                    : null,
+                                child:
+                                    // _post.global == 'true' ?
+                                    Text(
+                                  _post.username,
+                                  textAlign: TextAlign.start,
+                                  style: const TextStyle(
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.black,
+                                      letterSpacing: 1),
+                                )
+                                // : null
+                                ,
                               ),
                               SizedBox(height: 4),
                               Text(
@@ -622,13 +627,25 @@ class _PostCardTestState extends State<PostCardTest> {
                               ),
                               child: Container(
                                 child: Center(
-                                  child: Text(
-                                    '$commentLen Comments',
-                                    style: const TextStyle(
-                                        fontSize: 13,
-                                        color:
-                                            Color.fromARGB(255, 132, 132, 132),
-                                        letterSpacing: 0.8),
+                                  child: StreamBuilder(
+                                    stream: FirebaseFirestore.instance
+                                        .collection('posts')
+                                        .doc(_post.postId)
+                                        .collection('comments')
+                                        .snapshots(),
+                                    builder: (content, snapshot) {
+                                      print(
+                                          'BEFORE SNAPSHOT _post.comments: ${widget.post.comments}');
+
+                                      return Text(
+                                        '${(snapshot.data as dynamic)?.docs.length ?? 0} Comments',
+                                        style: const TextStyle(
+                                            fontSize: 13,
+                                            color: Color.fromARGB(
+                                                255, 132, 132, 132),
+                                            letterSpacing: 0.8),
+                                      );
+                                    },
                                   ),
                                 ),
                               ),

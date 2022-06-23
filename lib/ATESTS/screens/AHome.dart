@@ -159,13 +159,8 @@ class _MyHomeScreenState extends State<MyHomeScreen> {
           return ListView.builder(
               itemCount: snapshot.data!.docs.length,
               itemBuilder: (context, index) {
-                print('GETTTING LIST');
-                print(
-                    'snapshot.data!.docs[index].data(): ${snapshot.data!.docs[index].data()}');
                 Post post = Post.fromSnap(snapshot.data!.docs[index]);
                 final User? user = Provider.of<UserProvider>(context).getUser;
-                print(
-                    '_post.plus.contains(user.uid): ${post.plus.contains(user?.uid)}');
                 return PostCardTest(
                   post: post,
                 );

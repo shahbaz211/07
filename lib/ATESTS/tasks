@@ -18,3 +18,13 @@ Task #6
 In comment_card.dart (lines 211-361), we have a "reply" button. When clicked on, it should open a text field under the corresponding comment. It shouldnt open a text field under all comments but only the one where the button was clicked. Feel free to use the commented out code (lines 255-361) as a guide. When the user sends a message in that new text field, it should send it inside a new sub-collection within the comment collection. So currently in firebase we have a posts collection -> within that posts collection we have a sub-collection named "comments" and now within that sub-collection, I want a new collection named "replies". I believe the error here is once again in AFirestoreMethods.dart file (lines 294-324). The replies don't need to be displayed on the screen, as long as we can see a new collection created within firebase, that should be enough for this task.
 
 If you have any questions or would like me to clarify any of the tasks, don't hesitate to ask!
+
+
+Task #1
+In comment.card
+
+Task #2
+
+Task #3
+
+Task #4

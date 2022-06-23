@@ -111,6 +111,29 @@ class _LoginScreenState extends State<LoginScreen> {
                     const SizedBox(height: 24),
                     Flexible(child: Container(), flex: 2),
 
+                    //
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Container(
+                          child: Text("Continue as a guest"),
+                          padding: const EdgeInsets.symmetric(
+                            vertical: 8,
+                          ),
+                        ),
+                        IconButton(
+                          icon: Icon(Icons.arrow_forward),
+                          onPressed: () {
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (context) => MobileScreenLayout(),
+                              ),
+                            );
+                          },
+                        ),
+                      ],
+                    ),
+//
                     //transitioning
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,

@@ -20,6 +20,32 @@ import 'comment_card.dart';
 
 String? currentReplyCommentId;
 
+class CommentSort {
+  final String label;
+  final String key;
+  final bool value;
+
+  CommentSort({
+    required this.label,
+    required this.key,
+    required this.value,
+  });
+}
+
+class CommentFilter {
+  final String label;
+  Icon? icon;
+  final String key;
+  final String value;
+
+  CommentFilter({
+    required this.label,
+    this.icon,
+    required this.key,
+    required this.value,
+  });
+}
+
 class FullMessage extends StatefulWidget {
   final Post post;
 
@@ -41,12 +67,50 @@ class _FullMessageState extends State<FullMessage> {
   int commentLen = 0;
   String placement = '#338';
   bool filter = false;
-  var selectedOne = 0;
-  var selectedTwo = 0;
+
+  List<CommentSort> commentSorts = [
+    CommentSort(label: 'Most Popular', key: 'likes', value: true),
+    CommentSort(label: 'Most Recent', key: 'datePublished', value: true),
+  ];
+
+  List<CommentFilter> commentFilters = [
+    CommentFilter(
+      label: 'All',
+      key: 'commentId',
+      value: 'all',
+    ),
+    CommentFilter(
+      label: 'Voted',
+      icon: const Icon(
+        Icons.add_circle,
+        color: Colors.green,
+        size: 15,
+      ),
+      key: 'plus',
+      value: 'uid',
+    ),
+    CommentFilter(
+      label: 'Voted',
+      icon: const Icon(
+        Icons.do_not_disturb_on,
+        color: Colors.red,
+        size: 15,
+      ),
+      key: 'minus',
+      value: 'uid',
+    ),
+  ];
+
+  late CommentSort _selectedCommentSort;
+  late CommentFilter _selectedCommentFilter;
 
   @override
   void initState() {
     _post = widget.post;
+    _selectedCommentSort = commentSorts.first;
+    _selectedCommentFilter = commentFilters.first;
+
+    currentReplyCommentId = null;
     super.initState();
     controller = YoutubePlayerController(
       initialVideoId: _post.videoUrl,
@@ -87,6 +151,7 @@ class _FullMessageState extends State<FullMessage> {
     _post = widget.post;
 
     print('INSIDE FULL MESSAGE BUILD');
+    print('_post.toJson(): ${_post.toJson()}');
 
     const player = YoutubePlayerIFrame(
       gestureRecognizers: <Factory<OneSequenceGestureRecognizer>>{},
@@ -98,10 +163,11 @@ class _FullMessageState extends State<FullMessage> {
         color: Colors.black,
       ));
     }
+
+    print("_selectedCommentFilter.key: ${_selectedCommentFilter.key}");
+    print("_post.toJson(): ${_post.toJson()}");
     print(
-        'inside FULL MESSAGE _post.plus.contains(user.uid): ${_post.plus.contains(user.uid)}');
-    print(
-        'inside FULL MESSAGE _post.plus.contains(user.uid): ${_post.plus.contains(user.uid)}');
+        "_post.toJson()[_selectedCommentFilter.key]: ${_post.toJson()[_selectedCommentFilter.key]}");
 
     return SafeArea(
       child: Scaffold(
@@ -655,11 +721,46 @@ class _FullMessageState extends State<FullMessage> {
                             ),
                             child: Container(
                               height: 30,
-                              child: Text('Comments (8)',
-                                  style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 18,
-                                      letterSpacing: 0.8)),
+                              child: StreamBuilder(
+                                stream: _selectedCommentFilter.value == 'all'
+                                    ? FirebaseFirestore.instance
+                                        .collection('posts')
+                                        .doc(_post.postId)
+                                        .collection('comments')
+                                        // Sort
+                                        .orderBy(_selectedCommentSort.key,
+                                            descending:
+                                                _selectedCommentSort.value)
+                                        .snapshots()
+                                    : FirebaseFirestore.instance
+                                        .collection('posts')
+                                        .doc(_post.postId)
+                                        .collection('comments')
+                                        // Sort
+                                        .orderBy(_selectedCommentSort.key,
+                                            descending:
+                                                _selectedCommentSort.value)
+                                        // Filter
+                                        .where(_selectedCommentFilter.value,
+                                            whereIn: (_post
+                                                    .toJson()[
+                                                        _selectedCommentFilter
+                                                            .key]
+                                                    .isNotEmpty
+                                                ? _post.toJson()[
+                                                    _selectedCommentFilter.key]
+                                                : ['placeholder_uid']))
+                                        .snapshots(),
+                                builder: (content, snapshot) {
+                                  return Text(
+                                    'Comments (${(snapshot.data as dynamic)?.docs.length ?? 0})',
+                                    style: const TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 18,
+                                        letterSpacing: 0.8),
+                                  );
+                                },
+                              ),
                             ),
                           ),
                           filter == false
@@ -796,10 +897,54 @@ class _FullMessageState extends State<FullMessage> {
                                     ),
                                     Row(
                                       children: [
-                                        filterCommentOne(0,
-                                            text: 'Most Popular'),
-                                        filterCommentOne(1,
-                                            text: 'Most Recent'),
+                                        ...List.generate(commentSorts.length,
+                                            (index) {
+                                          CommentSort commentSort =
+                                              commentSorts[index];
+                                          return InkResponse(
+                                            child: Row(
+                                              children: [
+                                                PhysicalModel(
+                                                  color: _selectedCommentSort ==
+                                                          commentSort
+                                                      ? Color.fromARGB(
+                                                          255, 111, 111, 111)
+                                                      : Color.fromARGB(
+                                                          255, 247, 245, 245),
+                                                  elevation: 2,
+                                                  // shadowColor: Colors.black,
+                                                  borderRadius:
+                                                      BorderRadius.circular(25),
+                                                  child: Padding(
+                                                    padding: const EdgeInsets
+                                                            .symmetric(
+                                                        horizontal: 12.0,
+                                                        vertical: 8),
+                                                    child: Text(
+                                                        commentSort.label,
+                                                        style: TextStyle(
+                                                            color: _selectedCommentSort ==
+                                                                    commentSort
+                                                                ? Colors.white
+                                                                : Color
+                                                                    .fromARGB(
+                                                                        255,
+                                                                        111,
+                                                                        111,
+                                                                        111))),
+                                                  ),
+                                                ),
+                                                Container(width: 10),
+                                              ],
+                                            ),
+                                            onTap: () => setState(
+                                              () {
+                                                _selectedCommentSort =
+                                                    commentSort;
+                                              },
+                                            ),
+                                          );
+                                        })
                                       ],
                                     ),
                                     Container(
@@ -842,17 +987,74 @@ class _FullMessageState extends State<FullMessage> {
                                                 left: 2.0),
                                             child: Row(
                                               children: [
-                                                filterCommentTwo(
-                                                  0,
-                                                  Icons.clear_all,
-                                                  text: 'All',
-                                                ),
-                                                filterCommentTwo(
-                                                    1, Icons.add_circle,
-                                                    text: 'Voted  '),
-                                                filterCommentTwo(
-                                                    2, Icons.do_not_disturb_on,
-                                                    text: 'Voted  '),
+                                                ...List.generate(
+                                                    commentFilters.length,
+                                                    (index) {
+                                                  CommentFilter commentFilter =
+                                                      commentFilters[index];
+                                                  return InkResponse(
+                                                    child: Row(
+                                                      children: [
+                                                        PhysicalModel(
+                                                          color: _selectedCommentFilter ==
+                                                                  commentFilter
+                                                              ? Color.fromARGB(
+                                                                  255,
+                                                                  111,
+                                                                  111,
+                                                                  111)
+                                                              : Color.fromARGB(
+                                                                  255,
+                                                                  247,
+                                                                  245,
+                                                                  245),
+                                                          elevation: 2,
+                                                          // shadowColor: Colors.black,
+                                                          borderRadius:
+                                                              BorderRadius
+                                                                  .circular(25),
+                                                          child: Padding(
+                                                            padding:
+                                                                const EdgeInsets
+                                                                        .symmetric(
+                                                                    horizontal:
+                                                                        12.0,
+                                                                    vertical:
+                                                                        8),
+                                                            child: Row(
+                                                              children: [
+                                                                Text(
+                                                                  commentFilter
+                                                                      .label,
+                                                                  style: TextStyle(
+                                                                      color: _selectedCommentFilter ==
+                                                                              commentFilter
+                                                                          ? Colors
+                                                                              .white
+                                                                          : Color.fromARGB(
+                                                                              255,
+                                                                              111,
+                                                                              111,
+                                                                              111)),
+                                                                ),
+                                                                commentFilter
+                                                                        .icon ??
+                                                                    Container(),
+                                                              ],
+                                                            ),
+                                                          ),
+                                                        ),
+                                                        Container(width: 10),
+                                                      ],
+                                                    ),
+                                                    onTap: () => setState(
+                                                      () {
+                                                        _selectedCommentFilter =
+                                                            commentFilter;
+                                                      },
+                                                    ),
+                                                  );
+                                                })
                                               ],
                                             ),
                                           ),
@@ -866,39 +1068,56 @@ class _FullMessageState extends State<FullMessage> {
                           ),
                         ),
                   StreamBuilder(
-                    stream: FirebaseFirestore.instance
-                        .collection('posts')
-                        .doc(_post.postId)
-                        .collection('comments')
-                        .orderBy('datePublished', descending: true)
-                        .snapshots(),
-                    builder: (content, snapshot) {
-                      print(
-                          'BEFORE SNAPSHOT _post.comments: ${widget.post.comments}');
+                    stream: _selectedCommentFilter.value == 'all'
+                        ? FirebaseFirestore.instance
+                            .collection('posts')
+                            .doc(_post.postId)
+                            .collection('comments')
 
+                            // Sort
+                            .orderBy(_selectedCommentSort.key,
+                                descending: _selectedCommentSort.value)
+                            .snapshots()
+                        : FirebaseFirestore.instance
+                            .collection('posts')
+                            .doc(_post.postId)
+                            .collection('comments')
+
+                            // Filter
+                            .where(_selectedCommentFilter.value,
+                                whereIn: (_post
+                                        .toJson()[_selectedCommentFilter.key]
+                                        .isNotEmpty
+                                    ? _post.toJson()[_selectedCommentFilter.key]
+                                    : ['placeholder_uid']))
+
+                            // Sort
+                            .orderBy(_selectedCommentSort.key,
+                                descending: _selectedCommentSort.value)
+                            .snapshots(),
+                    builder: (content, snapshot) {
                       if (snapshot.connectionState == ConnectionState.waiting) {
                         return widget.post.comments == null
-                            ? const Center(
-                                child: CircularProgressIndicator(),
+                            ? const Padding(
+                                padding: EdgeInsets.all(8.0),
+                                child: Center(
+                                  child: CircularProgressIndicator(),
+                                ),
                               )
                             : CommentList(
                                 commentSnaps:
-                                    (widget.post.comments as dynamic).docs,
+                                    (widget.post.comments as dynamic)?.docs ??
+                                        [],
                                 post: widget.post,
                                 parentSetState: () {
                                   setState(() {});
                                 },
                               );
                       }
-                      print(
-                          '(snapshot.data! as dynamic).docs.runtimeType: ${(snapshot.data! as dynamic).docs.runtimeType}');
-                      widget.post.comments = (snapshot.data! as dynamic);
-
-                      print(
-                          'AFTER SNAPSHOT _post.comments: ${widget.post.comments}');
+                      widget.post.comments = (snapshot.data as dynamic);
 
                       return CommentList(
-                        commentSnaps: (snapshot.data! as dynamic).docs,
+                        commentSnaps: (snapshot.data as dynamic)?.docs ?? [],
                         post: _post,
                         parentSetState: () {
                           setState(() {});
@@ -911,90 +1130,6 @@ class _FullMessageState extends State<FullMessage> {
             );
           },
         ),
-      ),
-    );
-  }
-
-  Widget filterCommentOne(int index, {required String text}) {
-    return InkResponse(
-      child: Row(
-        children: [
-          PhysicalModel(
-            color: selectedOne == index
-                ? Color.fromARGB(255, 111, 111, 111)
-                : Color.fromARGB(255, 247, 245, 245),
-            elevation: 2,
-            // shadowColor: Colors.black,
-            borderRadius: BorderRadius.circular(25),
-            child: Padding(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8),
-              child: Text(text,
-                  style: TextStyle(
-                      color: selectedOne == index
-                          ? Colors.white
-                          : Color.fromARGB(255, 111, 111, 111))),
-            ),
-          ),
-          Container(width: 10),
-        ],
-      ),
-      onTap: () => setState(
-        () {
-          selectedOne = index;
-        },
-      ),
-    );
-  }
-
-  Widget filterCommentTwo(int index, IconData icon, {required String text}) {
-    return InkResponse(
-      child: Row(
-        children: [
-          PhysicalModel(
-            color: selectedTwo == index
-                ? Color.fromARGB(255, 111, 111, 111)
-                : Color.fromARGB(255, 247, 245, 245),
-            elevation: 2,
-            // shadowColor: Colors.black,
-            borderRadius: BorderRadius.circular(25),
-            child: Padding(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8),
-              child: Row(
-                children: [
-                  Text(
-                    text,
-                    style: TextStyle(
-                        color: selectedTwo == index
-                            ? Colors.white
-                            : Color.fromARGB(255, 111, 111, 111)),
-                  ),
-                  index == 0
-                      ? Icon(
-                          icon,
-                          size: 0,
-                        )
-                      : Icon(
-                          icon,
-                          color: index == 1
-                              ? Colors.green
-                              : index == 2
-                                  ? Colors.red
-                                  : null,
-                          size: 16,
-                        ),
-                ],
-              ),
-            ),
-          ),
-          Container(width: 10),
-        ],
-      ),
-      onTap: () => setState(
-        () {
-          selectedTwo = index;
-        },
       ),
     );
   }
@@ -1014,21 +1149,30 @@ class CommentList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ListView.builder(
-      scrollDirection: Axis.vertical,
-      shrinkWrap: true,
-      physics: ScrollPhysics(),
-      itemCount: commentSnaps.length,
-      itemBuilder: (context, index) {
-        var commentSnap = commentSnaps[index].data();
-        return CommentCard(
-          snap: commentSnap,
-          postId: post.postId,
-          minus: post.minus.contains(commentSnap['uid']),
-          plus: post.plus.contains(commentSnap['uid']),
-          parentSetState: parentSetState,
-        );
-      },
-    );
+    return commentSnaps.isEmpty
+        ? const Padding(
+            padding: EdgeInsets.all(8.0),
+            child: Center(
+              child: Text('No comments yet'),
+            ),
+          )
+        : ListView.builder(
+            scrollDirection: Axis.vertical,
+            shrinkWrap: true,
+            physics: ScrollPhysics(),
+            itemCount: commentSnaps.length,
+            itemBuilder: (context, index) {
+              var commentSnap = commentSnaps[index].data();
+
+              return CommentCard(
+                snap: commentSnap,
+                parentPost: post,
+                postId: post.postId,
+                minus: post.minus.contains(commentSnap['uid']),
+                plus: post.plus.contains(commentSnap['uid']),
+                parentSetState: parentSetState,
+              );
+            },
+          );
   }
 }
