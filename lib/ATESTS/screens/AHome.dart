@@ -1,3 +1,4 @@
+import 'package:aft/ATESTS/authentication/ASignup.dart';
 import 'package:aft/ATESTS/models/APost.dart';
 import 'package:aft/ATESTS/models/AUser.dart';
 import 'package:aft/ATESTS/provider/AUserProvider.dart';
@@ -7,12 +8,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-// import 'package:flag/flag.dart';
-import '../add/AAddPost.dart';
-import '../add/AAddPost.dart';
 import 'ACountriesValues.dart';
 import 'ACountries.dart';
-import 'APostCard.dart';
 
 class MyHomeScreen extends StatefulWidget {
   const MyHomeScreen({Key? key}) : super(key: key);
@@ -68,11 +65,11 @@ class _MyHomeScreenState extends State<MyHomeScreen> {
                   color: Colors.white,
                   child: TextButton(
                     child:
-                        Text('Add Post', style: TextStyle(color: Colors.black)),
+                        Text('Sign up', style: TextStyle(color: Colors.black)),
                     onPressed: () {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (context) => AddPost()),
+                        MaterialPageRoute(builder: (context) => SignupScreen()),
                       );
                     },
                   ),
@@ -146,27 +143,7 @@ class _MyHomeScreenState extends State<MyHomeScreen> {
           ),
         ],
       ),
-      body: StreamBuilder(
-        stream: FirebaseFirestore.instance.collection('posts').snapshots(),
-        builder: (context,
-            AsyncSnapshot<QuerySnapshot<Map<String, dynamic>>> snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(
-              child: CircularProgressIndicator(),
-            );
-          }
-
-          return ListView.builder(
-              itemCount: snapshot.data!.docs.length,
-              itemBuilder: (context, index) {
-                Post post = Post.fromSnap(snapshot.data!.docs[index]);
-                final User? user = Provider.of<UserProvider>(context).getUser;
-                return PostCardTest(
-                  post: post,
-                );
-              });
-        },
-      ),
+      body: Text(''),
     );
   }
 
