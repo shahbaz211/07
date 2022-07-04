@@ -13,4 +13,9 @@ class UserProvider with ChangeNotifier {
     _user = user;
     notifyListeners();
   }
+
+  Future<void> logoutUser() async {
+    _user = null;
+    notifyListeners();
+  }
 }

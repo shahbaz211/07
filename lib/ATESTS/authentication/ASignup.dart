@@ -1,13 +1,16 @@
 import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import '../responsive/AMobileScreenLayout.dart';
-import '../responsive/AResponsiveScreenLayout.dart';
-import '../responsive/AWebScreenLayout.dart';
-import '../other/ATextField.dart';
 import '../methods/AAuthMethods.dart';
+import '../other/ATextField.dart';
 import '../other/AUtils.dart';
+
+import '../screens/ACountriesValues.dart';
+
 import 'ALogin.dart';
+
+import 'package:shared_preferences/shared_preferences.dart';
 
 class SignupScreen extends StatefulWidget {
   const SignupScreen({Key? key}) : super(key: key);
@@ -21,9 +24,17 @@ class _SignupScreenState extends State<SignupScreen> {
   final TextEditingController _passwordController = TextEditingController();
   // final TextEditingController _bioController = TextEditingController();
   final TextEditingController _usernameController = TextEditingController();
+  final TextEditingController _countryController = TextEditingController();
   Uint8List? _image;
   bool _isLoading = false;
+
   var country = 'us';
+  String oneValue = '';
+  var countryIndex;
+  @override
+  void initState() {
+    super.initState();
+  }
 
   @override
   void dispose() {
@@ -55,27 +66,32 @@ class _SignupScreenState extends State<SignupScreen> {
     );
 
     if (res != "success") {
+      // Future.delayed(const Duration(milliseconds: 1500), () {
+      setState(() {
+        _isLoading = false;
+      });
+      // });
       showSnackBar(res, context);
     } else {
-      Navigator.of(context).push(
-        MaterialPageRoute(
-          builder: (context) => MobileScreenLayout(),
-        ),
-      );
+      goToHome(context);
     }
   }
 
   void navigateToLogin() {
     Navigator.of(context).push(
       MaterialPageRoute(
-          builder: (context) => const ResponsiveLayout(
-                mobileScreenLayout: MobileScreenLayout(),
-                webScreenLayout: WebScreenLayout(),
-              )),
+        builder: (context) => const LoginScreen(),
+      ),
     );
   }
 
   Widget build(BuildContext context) {
+    var countryIndex = long.indexOf(oneValue);
+    if (countryIndex >= 0) {
+      country = short[countryIndex];
+
+      print(country);
+    }
     return Scaffold(
         // resizeToAvoidBottomInset: false,
         body: SafeArea(
@@ -88,7 +104,6 @@ class _SignupScreenState extends State<SignupScreen> {
                     // crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       Flexible(child: Container(), flex: 1),
-
                       Stack(
                         children: [
                           _image != null
@@ -116,7 +131,6 @@ class _SignupScreenState extends State<SignupScreen> {
                       const SizedBox(
                         height: 24,
                       ),
-
                       const SizedBox(height: 64),
                       TextFieldInputNext(
                         hintText: 'Enter your username',
@@ -130,20 +144,14 @@ class _SignupScreenState extends State<SignupScreen> {
                         textEditingController: _emailController,
                       ),
                       const SizedBox(height: 24),
+
                       TextFieldInputDone(
                           hintText: 'Enter your password',
                           textInputType: TextInputType.text,
                           textEditingController: _passwordController,
                           isPass: true),
                       const SizedBox(height: 24),
-                      // TextFieldInputDone(
-                      //   hintText: 'Enter your bio',
-                      //   textInputType: TextInputType.text,
-                      //   textEditingController: _bioController,
-                      // ),
-                      // const SizedBox(height: 24),
 
-                      //signup button
                       InkWell(
                         onTap: signUpUser,
                         child: Container(
@@ -167,7 +175,29 @@ class _SignupScreenState extends State<SignupScreen> {
                       ),
                       const SizedBox(height: 24),
                       Flexible(child: Container(), flex: 2),
-
+                      InkWell(
+                        onTap: () {
+                          goToHome(context);
+                        },
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.only(
+                                top: 8,
+                                bottom: 8,
+                                left: 8,
+                              ),
+                              child: const Text("Continue as a guest"),
+                            ),
+                            const Padding(
+                              padding: EdgeInsets.all(8.0),
+                              child: Icon(Icons.arrow_forward),
+                            ),
+                          ],
+                        ),
+                      ),
                       //transitioning
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
@@ -195,5 +225,22 @@ class _SignupScreenState extends State<SignupScreen> {
                         ],
                       )
                     ].reversed.toList()))));
+  }
+
+  getValue() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    setState(() {
+      oneValue = prefs.getString('selected_radio') ?? '';
+
+      var countryIndex = long.indexOf(oneValue);
+      if (countryIndex >= 0) {
+        country = short[countryIndex];
+
+        print('abc');
+        print(country);
+
+        prefs.setString('cont', country);
+      }
+    });
   }
 }

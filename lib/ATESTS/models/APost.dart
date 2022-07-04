@@ -7,11 +7,18 @@ class Post {
   final String uid;
   final String username;
   final String profImage;
+  final String country;
+  // final datePublished;
   final String global;
   final String title;
   final String body;
   final String videoUrl;
   final String postUrl;
+  // final int selected;
+  // final plus;
+  // final neutral;
+  // final minus;
+  final int score;
   final List<String> plus;
   final List<String> neutral;
   final List<String> minus;
@@ -24,6 +31,7 @@ class Post {
     required this.uid,
     required this.username,
     required this.profImage,
+    required this.country,
     required this.datePublished,
     required this.global,
     required this.title,
@@ -34,6 +42,7 @@ class Post {
     required this.plus,
     required this.neutral,
     required this.minus,
+    required this.score,
   });
 
   Map<String, dynamic> toJson() => {
@@ -41,6 +50,7 @@ class Post {
         "uid": uid,
         "username": username,
         "profImage": profImage,
+        "country": country,
         "datePublished": datePublished,
         "global": global,
         "title": title,
@@ -51,16 +61,29 @@ class Post {
         "plus": plus,
         "neutral": neutral,
         "minus": minus,
+        "score": score,
       };
 
   static Post fromSnap(DocumentSnapshot snap) {
     var snapshot = snap.data() as Map<String, dynamic>;
 
     return Post(
+      // postId: snapshot['postId'],
+      // uid: snapshot['uid'],
+      // username: snapshot['username'],
+      // profImage: snapshot['profImage'],
+      // country: snapshot['country'],
+      // datePublished: snapshot['datePublished'],
+      // global: snapshot['global'],
+      // title: snapshot['title'],
+      // body: snapshot['body'],
+      // videoUrl: snapshot['videoUrl'],
+      // postUrl: snapshot['postUrl'],
       postId: snapshot['postId'] ?? "",
       uid: snapshot['uid'] ?? "",
       username: snapshot['username'] ?? "",
       profImage: snapshot['profImage'] ?? "",
+      country: snapshot['country'] ?? "",
       global: snapshot['global'] ?? "",
       title: snapshot['title'] ?? "",
       body: snapshot['body'] ?? "",
@@ -71,6 +94,11 @@ class Post {
       minus: (snapshot['minus'] ?? []).cast<String>(),
       selected: snapshot['selected'],
       datePublished: snapshot['datePublished'],
+      // selected: snapshot['selected'],
+      // plus: snapshot['plus'],
+      // neutral: snapshot['neutral'],
+      // minus: snapshot['minus'],
+      score: snapshot['score'],
     );
   }
 }
