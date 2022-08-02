@@ -1,9 +1,9 @@
 import 'dart:typed_data';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:uuid/uuid.dart';
-import '../models/APost.dart';
+import '../models/post.dart';
 import '../models/poll.dart';
-import '../other/AUtils.dart';
+import '../other/utils.dart.dart';
 
 class FirestoreMethods {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -31,40 +31,73 @@ class FirestoreMethods {
       String pollId = const Uuid().v1();
 
       Poll poll = Poll(
-        pollId: pollId,
-        uid: uid,
-        username: username,
-        profImage: profImage,
-        country: country,
-        datePublished: DateTime.now(),
-        global: global,
-        pollTitle: pollTitle,
-        option1: option1,
-        option2: option2,
-        option3: option3,
-        option4: option4,
-        option5: option5,
-        option6: option6,
-        option7: option7,
-        option8: option8,
-        option9: option9,
-        option10: option10,
-        vote1: [],
-        vote2: [],
-        vote3: [],
-        vote4: [],
-        vote5: [],
-        vote6: [],
-        vote7: [],
-        vote8: [],
-        vote9: [],
-        vote10: [],
-        totalVotes: 0,
-      );
+          pollId: pollId,
+          uid: uid,
+          username: username,
+          profImage: profImage,
+          country: country,
+          datePublished: DateTime.now(),
+          global: global,
+          endDate: DateTime.now().add(const Duration(
+            days: 0,
+            hours: 0,
+            minutes: 1,
+          )),
+          pollTitle: pollTitle,
+          option1: option1,
+          option2: option2,
+          option3: option3,
+          option4: option4,
+          option5: option5,
+          option6: option6,
+          option7: option7,
+          option8: option8,
+          option9: option9,
+          option10: option10,
+          vote1: [],
+          vote2: [],
+          vote3: [],
+          vote4: [],
+          vote5: [],
+          vote6: [],
+          vote7: [],
+          vote8: [],
+          vote9: [],
+          vote10: [],
+          totalVotes: 0,
+          allVotesUIDs: []);
 
       _firestore.collection('polls').doc(pollId).set(
             poll.toJson(),
           );
+      res = "success";
+    } catch (err) {
+      res = err.toString();
+    }
+    return res;
+  }
+
+  Future<String> poll({
+    required Poll poll,
+    required String uid,
+    required int optionIndex,
+  }) async {
+    String res = "some error occurred";
+
+    try {
+      String pollId = poll.pollId;
+
+      print('_poll : ${poll.toJson()}');
+      print('pollId : $pollId');
+
+      _firestore.collection('polls').doc(pollId).update({
+        'totalVotes': FieldValue.increment(1),
+        'vote$optionIndex': FieldValue.arrayUnion([uid]),
+        'allVotesUIDs': FieldValue.arrayUnion([uid]),
+      });
+
+      print('POLL SUCCESSFULL');
+
       res = "success";
     } catch (err) {
       res = err.toString();
@@ -321,70 +354,87 @@ class FirestoreMethods {
     }
   }
 
-  // Future<void> likeComment(
-  //     String postId, String commentId, String uid, List likes) async {
-  //   try {
-  //     if (likes.contains(uid)) {
-  //       await _firestore
-  //           .collection('posts')
-  //           .doc(postId)
-  //           .collection('comments')
-  //           .doc(commentId)
-  //           .update({
-  //         'likes': FieldValue.arrayRemove([uid]),
-  //       });
-  //     } else {
-  //       await _firestore
-  //           .collection('posts')
-  //           .doc(postId)
-  //           .collection('comments')
-  //           .doc(commentId)
-  //           .update({
-  //         'likes': FieldValue.arrayUnion([uid]),
-  //         'dislikes': FieldValue.arrayRemove([uid]),
-  //       });
-  //     }
-  //   } catch (e) {
-  //     print(
-  //       e.toString(),
-  //     );
-  //   }
-  // }
+  Future<void> pollComment(String pollId, String text, String uid, String name,
+      String profilePic) async {
+    try {
+      if (text.isNotEmpty) {
+        String trimmedText = trimText(text: text);
+        String commentId = const Uuid().v1();
+        _firestore
+            .collection('polls')
+            .doc(pollId)
+            .collection('comments')
+            .doc(commentId)
+            .set({
+          'profilePic': profilePic,
+          'name': name,
+          'uid': uid,
+          'text': trimmedText,
+          'commentId': commentId,
+          'datePublished': DateTime.now(),
+          'likes': [],
+          'likeCount': 0,
+          'dislikes': [],
+          'dislikeCount': 0,
+        });
+      } else {
+        print('Text is empty');
+      }
+    } catch (e) {
+      print(
+        e.toString(),
+      );
+    }
+  }
 
-  // Future<void> dislikeComment(
-  //     String postId, String commentId, String uid, List dislikes) async {
-  //   try {
-  //     if (dislikes.contains(uid)) {
-  //       await _firestore
-  //           .collection('posts')
-  //           .doc(postId)
-  //           .collection('comments')
-  //           .doc(commentId)
-  //           .update({
-  //         'dislikes': FieldValue.arrayRemove([uid]),
-  //       });
-  //     } else {
-  //       await _firestore
-  //           .collection('posts')
-  //           .doc(postId)
-  //           .collection('comments')
-  //           .doc(commentId)
-  //           .update({
-  //         'dislikes': FieldValue.arrayUnion([uid]),
-  //         'likes': FieldValue.arrayRemove([uid]),
-  //       });
-  //     }
-  //   } catch (e) {
-  //     print(
-  //       e.toString(),
-  //     );
-  //   }
-  // }
+  Future<void> pollReply(String pollId, String commentId, String text,
+      String uid, String name, String profilePic) async {
+    try {
+      if (text.isNotEmpty) {
+        String trimmedText = trimText(text: text);
+        String replyId = const Uuid().v1();
+        _firestore
+            .collection('polls')
+            .doc(pollId)
+            .collection('comments')
+            .doc(commentId)
+            .collection('replies')
+            .doc(replyId)
+            .set({
+          'profilePic': profilePic,
+          'name': name,
+          'uid': uid,
+          'text': trimmedText,
+          'replyId': replyId,
+          'datePublished': DateTime.now(),
+          'likes': [],
+          'likeCount': 0,
+          'dislikes': [],
+          'dislikeCount': 0,
+        });
+      } else {
+        print('Text is empty');
+      }
+    } catch (e) {
+      print(
+        e.toString(),
+      );
+    }
+  }
 
   //deleting post
   Future<void> deletePost(String postId) async {
     try {
       await _firestore.collection('posts').doc(postId).delete();
+    } catch (err) {
+      print(err.toString());
+    }
+  }
+
+  //deleting poll
+  Future<void> deletePoll(String pollId) async {
+    try {
+      await _firestore.collection('polls').doc(pollId).delete();
     } catch (err) {
       print(err.toString());
     }
@@ -423,6 +473,39 @@ class FirestoreMethods {
     }
   }
 
+  Future<void> deletePollComment(String pollId, String commentId) async {
+    try {
+      await _firestore
+          .collection('polls')
+          .doc(pollId)
+          .collection('comments')
+          .doc(commentId)
+          .delete();
+    } catch (err) {
+      print(err.toString());
+    }
+  }
+
+  Future<void> deletePollReply(
+    String pollId,
+    String commentId,
+    String replyId,
+  ) async {
+    try {
+      await _firestore
+          .collection('polls')
+          .doc(pollId)
+          .collection('comments')
+          .doc(commentId)
+          .collection('replies')
+          .doc(replyId)
+          .delete();
+    } catch (err) {
+      print(err.toString());
+    }
+  }
+
+//LIKE+DISLIKES COMMENTS/REPLIES - MESSAGES
   Future<void> likeComment(
     String postId,
     String commentId,
@@ -597,6 +680,198 @@ class FirestoreMethods {
         await _firestore
             .collection('posts')
             .doc(postId)
+            .collection('comments')
+            .doc(commentId)
+            .collection('replies')
+            .doc(replyId)
+            .update(updateMap);
+        //     .update({
+        //   'dislikes': FieldValue.arrayUnion([uid]),
+        //   'likes': FieldValue.arrayRemove([uid]),
+        // });
+      }
+    } catch (e) {
+      print(
+        e.toString(),
+      );
+    }
+  }
+
+  //DISLIKES+LIKES -- POLLS
+  Future<void> likePollComment(
+    String pollId,
+    String commentId,
+    String uid,
+    List likes,
+    List dislikes,
+  ) async {
+    try {
+      if (likes.contains(uid)) {
+        await _firestore
+            .collection('polls')
+            .doc(pollId)
+            .collection('comments')
+            .doc(commentId)
+            .update({
+          'likes': FieldValue.arrayRemove([uid]),
+          'likeCount': FieldValue.increment(-1),
+        });
+      } else {
+        var updateMap = {
+          'likes': FieldValue.arrayUnion([uid]),
+          'likeCount': FieldValue.increment(1),
+          'dislikes': FieldValue.arrayRemove([uid]),
+        };
+
+        if (dislikes.contains(uid)) {
+          updateMap['dislikeCount'] = FieldValue.increment(-1);
+        }
+        await _firestore
+            .collection('polls')
+            .doc(pollId)
+            .collection('comments')
+            .doc(commentId)
+            .update(updateMap);
+        //     .update({
+        //   'likes': FieldValue.arrayUnion([uid]),
+
+        //   'dislikes': FieldValue.arrayRemove([uid]),
+        // });
+      }
+    } catch (e) {
+      print(
+        e.toString(),
+      );
+    }
+  }
+
+  Future<void> dislikePollComment(String pollId, String commentId, String uid,
+      List likes, List dislikes) async {
+    try {
+      if (dislikes.contains(uid)) {
+        await _firestore
+            .collection('polls')
+            .doc(pollId)
+            .collection('comments')
+            .doc(commentId)
+            .update({
+          'dislikes': FieldValue.arrayRemove([uid]),
+          'dislikeCount': FieldValue.increment(-1),
+        });
+      } else {
+        var updateMap = {
+          'dislikes': FieldValue.arrayUnion([uid]),
+          'dislikeCount': FieldValue.increment(1),
+          'likes': FieldValue.arrayRemove([uid]),
+        };
+
+        if (likes.contains(uid)) {
+          updateMap['likeCount'] = FieldValue.increment(-1);
+        }
+
+        await _firestore
+            .collection('polls')
+            .doc(pollId)
+            .collection('comments')
+            .doc(commentId)
+            .update(updateMap);
+        //     .update({
+        //   'dislikes': FieldValue.arrayUnion([uid]),
+        //   'likes': FieldValue.arrayRemove([uid]),
+        // });
+      }
+    } catch (e) {
+      print(
+        e.toString(),
+      );
+    }
+  }
+
+  Future<void> likePollReply(
+    String pollId,
+    String commentId,
+    String uid,
+    List likes,
+    List dislikes,
+    String replyId,
+  ) async {
+    try {
+      if (likes.contains(uid)) {
+        await _firestore
+            .collection('polls')
+            .doc(pollId)
+            .collection('comments')
+            .doc(commentId)
+            .collection('replies')
+            .doc(replyId)
+            .update({
+          'likes': FieldValue.arrayRemove([uid]),
+          'likeCount': FieldValue.increment(-1),
+        });
+      } else {
+        var updateMap = {
+          'likes': FieldValue.arrayUnion([uid]),
+          'likeCount': FieldValue.increment(1),
+          'dislikes': FieldValue.arrayRemove([uid]),
+        };
+
+        if (dislikes.contains(uid)) {
+          updateMap['dislikeCount'] = FieldValue.increment(-1);
+        }
+        await _firestore
+            .collection('polls')
+            .doc(pollId)
+            .collection('comments')
+            .doc(commentId)
+            .collection('replies')
+            .doc(replyId)
+            .update(updateMap);
+        //     .update({
+        //   'likes': FieldValue.arrayUnion([uid]),
+        //   'dislikes': FieldValue.arrayRemove([uid]),
+        // });
+      }
+    } catch (e) {
+      print(
+        e.toString(),
+      );
+    }
+  }
+
+  Future<void> dislikePollReply(
+    String pollId,
+    String commentId,
+    String uid,
+    List likes,
+    List dislikes,
+    String replyId,
+  ) async {
+    try {
+      if (dislikes.contains(uid)) {
+        await _firestore
+            .collection('polls')
+            .doc(pollId)
+            .collection('comments')
+            .doc(commentId)
+            .collection('replies')
+            .doc(replyId)
+            .update({
+          'dislikes': FieldValue.arrayRemove([uid]),
+          'dislikeCount': FieldValue.increment(-1),
+        });
+      } else {
+        var updateMap = {
+          'dislikes': FieldValue.arrayUnion([uid]),
+          'dislikeCount': FieldValue.increment(1),
+          'likes': FieldValue.arrayRemove([uid]),
+        };
+
+        if (likes.contains(uid)) {
+          updateMap['likeCount'] = FieldValue.increment(-1);
+        }
+        await _firestore
+            .collection('polls')
+            .doc(pollId)
             .collection('comments')
             .doc(commentId)
             .collection('replies')

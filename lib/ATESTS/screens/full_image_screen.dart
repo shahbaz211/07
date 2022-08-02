@@ -1,26 +1,28 @@
 import 'package:flutter/src/foundation/key.dart';
 import 'package:flutter/src/widgets/framework.dart';
 import 'package:flutter/material.dart';
+import '../models/post.dart';
 
-class FullImageScreenAdd extends StatefulWidget {
-  final file;
-
-  const FullImageScreenAdd({Key? key, required this.file}) : super(key: key);
+class FullImageScreen extends StatefulWidget {
+  final Post post;
+  const FullImageScreen({Key? key, required this.post}) : super(key: key);
 
   @override
-  State<FullImageScreenAdd> createState() => _FullImageScreenAddState();
+  State<FullImageScreen> createState() => _FullImageScreenState();
 }
 
-class _FullImageScreenAddState extends State<FullImageScreenAdd> {
+class _FullImageScreenState extends State<FullImageScreen> {
+  late Post _post;
+
   @override
   void initState() {
+    _post = widget.post;
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
     var safePadding = MediaQuery.of(context).padding.top;
-
     return Container(
       color: Colors.white,
       child: SafeArea(
@@ -36,8 +38,10 @@ class _FullImageScreenAddState extends State<FullImageScreenAdd> {
                   Text('Image Viewer', style: TextStyle(color: Colors.black))),
           backgroundColor: Color.fromARGB(255, 235, 235, 235),
           body: Container(
-            height: MediaQuery.of(context).size.height * 1 - safePadding,
-            width: MediaQuery.of(context).size.width * 1,
+            // height: MediaQuery.of(context).size.height * 1 -
+            //     safePadding -
+            //     kToolbarHeight,
+            // width: MediaQuery.of(context).size.width * 1,
             child: Column(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
@@ -71,27 +75,21 @@ class _FullImageScreenAddState extends State<FullImageScreenAdd> {
                         kToolbarHeight,
                     width: MediaQuery.of(context).size.width * 0.95,
                     decoration: BoxDecoration(
+                      // color: Colors.blue,
                       color: Color.fromARGB(255, 235, 235, 235),
+                      borderRadius: BorderRadius.all(
+                        Radius.circular(5.0),
+                      ),
                     ),
-                    // child: Image.network(image),
-                    child: Container(
-                      decoration: BoxDecoration(
-                          image: DecorationImage(
-                        image: widget.file,
-
-                        fit: BoxFit.contain,
-                        // alignment: FractionalOffset.topCenter,
-                      )),
+                    child: Image.network(
+                      _post.postUrl,
                     ),
                   ),
                 ),
                 Container(
-                  // height: MediaQuery.of(context).size.height * 0.03,
-                  child: Container(
-                    decoration: BoxDecoration(
-                        // color: Colors.grey,
-                        ),
-                  ),
+                  decoration: BoxDecoration(
+                      // color: Colors.grey,
+                      ),
                 ),
               ],
             ),

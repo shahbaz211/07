@@ -1,3 +1,25 @@
+import 'package:flutter/material.dart';
+
+final List<String> one = [
+  'Highest Score',
+  'Most Recent',
+];
+
+final List<String> onei = [
+  'Highest Score',
+  'Most Voted',
+  'Gaining Mome',
+];
+
+final List<String> two = [
+  '1',
+  '2',
+  '3',
+  '4',
+  '5',
+  '6',
+  '7',
+];
 final List<String> short = [
   'af',
   'al',

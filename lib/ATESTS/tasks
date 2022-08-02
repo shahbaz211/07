@@ -1,31 +1,42 @@
-Task #1 
-In add_screen.dart (line 1480) if you click on "polls" (clicking on one of the radio buttons in the app bar), you'll notice that the max character length for each option is 50. I'd like to move the 0/50 character counter and put it inside the text field instead. The position of the character counter doesn't have to be specific, as long as I can move it myself with other widgets such as padding, stack and others this should be fine!
+
+Task#1
+In full_message_poll.dart (lines 95-150), I would like to see the names of the poll options be displayed there instead of the static "option 1", "option 2", etc. This would work similarly to filtering comments by vote in full_message.dart. Clicking on a specific poll option in the filter section would only show the comments sent by users who voted for that specific poll option. 
 
 Task #2
-In add_screen.dart (lines 520-600) -> (in the poll screen again).. You'll notice that if you click on the "send poll" button but there's nothing written down in any input fields, two errors will pop up explaining to the user that the text fields cannot remain blank. There are two specific problems to fix here. 1) If the first two poll option text fields have something written down but the poll question is still empty and then you click the "send poll" button, you'll notice that the 2nd error still pops up (which shouldn't be the case because the first two poll options text fields are not empty) - in other words, only the first error should pop up. 2) Sometimes when all text fields have somethign written down in them and you click on "send poll", it'll show "RangeError" in the snackbar and not post the message. This is is likely another error caused by the if statemnts in lines 520-600 but I'm not entirely certain!
+If you create a new poll, go to the home screen and vote, you'll notice that you can give a 2nd vote if you head to the comments page. I'd like this to be fixed to make sure that each user can only vote once.
 
 Task #3
-In add_screen.dart -> (this time in the "message" screen section).. You'll notice there are 4 icon buttons dispalyed in a row, the 4th icon button doesn't have any functions yet. When clicking on this icon, it should have the exact same function as the 2nd icon button where clicking it opens up a dialog box with an option for "camera" or "gallery". The only difference here is that the 2nd icon button is specifically to open/upload images from your phone (using the ImagePicker dependency). This time, the 4th icon button should open/upload videos from your phone. And when opening the camera, it should open the camera to let the user record a video. I believe this YouTube video could assist you in completing this task: https://www.youtube.com/watch?v=BAgLOAGga2o . The selected video from the phone should be displayed in the same area where the image is displayed when the user selects an image. As long as the video is displayed without any errors and the functions work correctly, this should be fine. No need to worry about all the other small details!
+In comment_card.dart (lines 705-740), clicking ont hat specific "send" button doesn't seem to be working properly, clicking the send button doesn't perform any action. 
 
 Task #4
-In poll_card.dart, you'll notice that we're only displaying the different poll options inside of simple text widgets. Instead I would want this poll card to become a fully functional poll system where users can click on each displayed poll option to give their vote. Once the user votes, the results should show up in %. And also when a user votes, they cannot re-vote (they can only vote once). There should also be a time limit for the poll. Once the time limit is reached, no user should have the ability to vote and final results would be displayed to everyone (even to users who haven't yet voted). Feel free to use dependencies such as https://pub.dev/packages/flutter_polls or https://pub.dev/packages/polls to finish this task. 
+If you go to settings and click on "Blocked List", you'll notice an empty page. On this page we should instead have a list of the user's blocked accounts. That list should cpontain objects such as: the profile image of the blocked user + their username and also include a "remove" button that lets the user remove any account from that list. The accounts in that list will no longer show up in the user's messages or polls feed. In order to add a user to that list, you simply have to click on the 3 small dots icon on the right side of a message card and then click "Block User", once that button is clicked, a snackbar will appear saying "user blocked" as soon as that account is successfully blocked.
 
 Task #5
-In ASignup.dart, when a user signs up, uploading a profile picture is a requirement. I want to make this optional. If no file is uploaded, the circle avatar picture shoud instead display the "anonymous user" picture that you see when no file is yet selected.
+If you go to settings and click on "Delete Account", it'll delete that specific user from the "users" collection in the firestore databse, but on top of this I would also like to see the account get removed from the "authentication" -> "users" section of firebase as well. 
 
 Task #6
-In ASignup.dart, when a user signs up, they can choose any character + whatever length as their username. I want this to be changed.
-1) If the username is already taken by another registered user, it shouldn't allow them to signup. It should also display a message as a snackbar to inform them that the username is already taken.
-2) The username should only be between 3-16 characters long.
-3) The username should only allow letters and numbers (no spaces, dashes, underscores, special characters, etc.)
+I'd like a small change made to the username rules. Currently, if you try to make an account with named "abc" and then make a second account but this time name it "ABC", it'll let you create those two accounts. Instead, if there's already a username named "abc", any username with the exact same combination of letters/numbers (regardless of capital or lower case letters), shouldn't be allowed to be created.
 
 Task #7
-In ALogin.dart, the first text field currently only allows the user to login with their email. Instead, I want the firts text field to allow either the username or the email to be used to login into their account.
+In message_card.dart (line 542), you'll notice that we have two if statements. I'd like to add an additional one, If _post.selected == 2, it should show the uploaded video from phone get displayed on the message card. Similar to how _post.selected == 3 videos are displayed.
 
 Task #8
-In ALogin.dart, the user has an option to change their password if they forgot it. I've noticed that if you click on "Authentication" -> "Templates" in the firebase console, there's an option for "Email address change". I would like to implement this option into the project as well. I want to give the users the option to change their email address if they feel like it.
-Additionally, I would also want an option for the user to change their username. For additional security, the user should re-authenticate before changing their email or username.
-All fo this can be done in the "profile screen" section of the app.
+In profile_screen_edit.dart, I want the user to be able to change their profile picture from that screen.
 
 Task #9
-On the home screen, if you click on the settings icon and then click on "Report User", it will navigate you to a new page with two containers/buttons. My goal is to send the message inside the pressed button and receive it by email. If you click on "one" it should send me "one" as the email message. If you click on "two" it should send me "two" as the email message. It should send the email right when the buttons are clicked and you shouldn't have to log into any email account to accomplish this. I'm not sure if this is possible but not exposing/storing the password within the code would also be very beneficial for security purposes. I'm also open to any other notification system where I could receive information and be notified in real time based on actions taken within the app. But receving information via email would probbably be the best case scenario. let me know if you have any suggestions here!
+In profile_screen_edit.dart, the user has the option to display the flag image on their profile page or not. When a user's profileFlag value is set to "true" in the backend, it should display the flag image to other users that visit their profile. And when profileFlag value is false, it should instead not show the flag image at all. Additionally, their bio message should show up as well. Currently, the bio message shown on the profile pages is always the bio message from the currently logged in user. Instead it should show the bio message from the specific user/profile account that you're visiting.
+
+Task #10
+In profile_screen.dart (line 787), Instead of showing static text on the last tab, I'd instead like this tab to show all messages + polls that the user previously voted (messages and polls should be mixed together into one stream/list). The most recently voted messages/polls should always appear at the top/first in the list.
+
+Task #11
+In profile_screen.dart (line 725), if you create multiple messages + polls, then scroll down the list on one tab and then switch to another tab, you'll notice that the list won't start from the beginning but instead it'll keep the scroll location from the previous tab. Instead, whenever the user switches tabs, it should always start the list from the #1 message/poll on the index.
+
+Task #12
+On the home_screen.dart file (lines 105-180), we have two functions that refresh the order of polls/messages whenever its called. This allows streams/lists to not change order in real time and only change when that function is called instead. If possible, I'd like that same logic to be applied to the comments & profile page.
+
+1. (for comments) -> when sort/or filter button is clicked or when the user initially opens up this page, the function should be called.
+
+2. (for profile) -> when a tab on the tabBar is clicked or when the user initially opens this page, the function should be called.
+
+

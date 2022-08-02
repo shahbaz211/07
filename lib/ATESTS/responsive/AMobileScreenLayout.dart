@@ -4,9 +4,9 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../models/AUser.dart' as model;
-import '../provider/AUserProvider.dart';
-import '../other/AGlobalVariables.dart';
+import '../models/user.dart' as model;
+import '../provider/user_provider.dart';
+import '../other/global_variables.dart';
 
 class MobileScreenLayout extends StatefulWidget {
   const MobileScreenLayout({Key? key}) : super(key: key);
@@ -67,10 +67,10 @@ class _MobileScreenLayoutState extends State<MobileScreenLayout> {
               icon: Padding(
                 padding: const EdgeInsets.only(top: 3.0),
                 child: Icon(
-                  Icons.person,
+                  Icons.create,
                 ),
               ),
-              label: 'Profile',
+              label: 'Create',
             ),
           ],
           currentIndex: _page,

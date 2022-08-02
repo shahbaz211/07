@@ -10,28 +10,31 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:youtube_player_iframe/youtube_player_iframe.dart';
 
-import '../methods/AFirestoreMethods.dart';
-import '../models/APost.dart';
-import '../models/AUser.dart';
-import '../other/AUtils.dart';
-import '../provider/AUserProvider.dart';
+import '../methods/firestore_methods.dart';
+import '../models/post.dart';
+import '../models/user.dart';
+import '../other/utils.dart.dart';
+import '../provider/user_provider.dart';
+import '../screens/full_image_screen.dart';
+import '../screens/full_message.dart';
+import '../screens/profile_screen.dart';
 import '../screens/report_user_screen.dart';
-import 'like_animation.dart';
+import '../screens/like_animation.dart';
 
-class PostCard extends StatefulWidget {
+class PostCardTest extends StatefulWidget {
   final Post post;
   final indexPlacement;
-  const PostCard({
+  const PostCardTest({
     Key? key,
     required this.post,
     required this.indexPlacement,
   }) : super(key: key);
 
   @override
-  State<PostCard> createState() => _PostCardState();
+  State<PostCardTest> createState() => _PostCardTestState();
 }
 
-class _PostCardState extends State<PostCard> {
+class _PostCardTestState extends State<PostCardTest> {
   late Post _post;
   late YoutubePlayerController controller;
   bool isLikeAnimating = false;
@@ -81,7 +84,7 @@ class _PostCardState extends State<PostCard> {
     } catch (e) {
       showSnackBar(e.toString(), context);
     }
-    setState(() {});
+    // setState(() {});
   }
 
   _otherUsers(BuildContext context) async {
@@ -130,20 +133,20 @@ class _PostCardState extends State<PostCard> {
                   );
                 },
               ),
-              SimpleDialogOption(
-                padding: const EdgeInsets.all(20),
-                child: Row(
-                  children: [
-                    Icon(Icons.clear),
-                    Container(width: 10),
-                    const Text('Close',
-                        style: TextStyle(letterSpacing: 0.2, fontSize: 15)),
-                  ],
-                ),
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
-              ),
+              // SimpleDialogOption(
+              //   padding: const EdgeInsets.all(20),
+              //   child: Row(
+              //     children: [
+              //       Icon(Icons.clear),
+              //       Container(width: 10),
+              //       const Text('Close',
+              //           style: TextStyle(letterSpacing: 0.2, fontSize: 15)),
+              //     ],
+              //   ),
+              //   onPressed: () {
+              //     Navigator.of(context).pop();
+              //   },
+              // ),
               // Column(
               //   mainAxisAlignment: MainAxisAlignment.center,
               //   children: [
@@ -200,23 +203,23 @@ class _PostCardState extends State<PostCard> {
                 onPressed: () async {
                   FirestoreMethods().deletePost(_post.postId);
                   Navigator.of(context).pop();
-                  showSnackBar('Message Deleted.', context);
+                  showSnackBar('Message Deleted', context);
                 },
               ),
-              SimpleDialogOption(
-                padding: const EdgeInsets.all(20),
-                child: Row(
-                  children: [
-                    Icon(Icons.clear),
-                    Container(width: 10),
-                    const Text('Close',
-                        style: TextStyle(letterSpacing: 0.2, fontSize: 15)),
-                  ],
-                ),
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
-              ),
+              // SimpleDialogOption(
+              //   padding: const EdgeInsets.all(20),
+              //   child: Row(
+              //     children: [
+              //       Icon(Icons.clear),
+              //       Container(width: 10),
+              //       const Text('Close',
+              //           style: TextStyle(letterSpacing: 0.2, fontSize: 15)),
+              //     ],
+              //   ),
+              //   onPressed: () {
+              //     Navigator.of(context).pop();
+              //   },
+              // ),
               // Column(
               //   mainAxisAlignment: MainAxisAlignment.center,
               //   children: [
@@ -299,15 +302,24 @@ class _PostCardState extends State<PostCard> {
     return YoutubePlayerControllerProvider(
       controller: controller,
       child: Padding(
-        padding: const EdgeInsets.only(
-          top: 8,
-          right: 8,
-          left: 8,
-        ),
+        padding: widget.indexPlacement == 0
+            ? EdgeInsets.only(
+                bottom: 8,
+                right: 8,
+                left: 8,
+                top: 8,
+              )
+            : EdgeInsets.only(
+                bottom: 8,
+                right: 8,
+                left: 8,
+              ),
         child: Container(
           decoration: BoxDecoration(
             // border: Border.all(width: 2, color: Colors.black),
-            borderRadius: BorderRadius.circular(10),
+            border:
+                Border.all(width: 0, color: Color.fromARGB(255, 167, 167, 167)),
+            borderRadius: BorderRadius.circular(8),
             color: Colors.white,
           ),
           padding: const EdgeInsets.only(left: 10, right: 10),
@@ -323,11 +335,28 @@ class _PostCardState extends State<PostCard> {
                   child: Row(
                     // mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      CircleAvatar(
-                        radius: 20,
-                        // backgroundImage: NetworkImage(widget.snap['profImage']),
-                        backgroundImage: NetworkImage(_post.profImage),
-                      ),
+                      InkWell(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => Profile(
+                                        post: _post,
+                                      )),
+                            );
+                          },
+                          child: CircleAvatar(
+                              radius: 20,
+                              backgroundColor:
+                                  Color.fromARGB(255, 227, 227, 227),
+                              // backgroundImage: NetworkImage(widget.snap['profImage']),
+                              backgroundImage: NetworkImage(_post.profImage))),
+                      //       backgroundImage: _post.profImage != ""
+                      //           ? NetworkImage(_post.profImage)
+                      //           :
+                      //           NetworkImage(
+                      //               'https://images.nightcafe.studio//assets/profile.png?tr=w-1600,c-at_max')),
+                      // ),
                       SizedBox(width: 10),
                       Align(
                         alignment: Alignment.topRight,
@@ -343,18 +372,18 @@ class _PostCardState extends State<PostCard> {
                                 _post.username,
                                 textAlign: TextAlign.start,
                                 style: TextStyle(
-                                    fontSize: 15,
+                                    fontSize: 16,
                                     fontWeight: FontWeight.bold,
                                     color: Colors.black,
-                                    letterSpacing: 1),
+                                    letterSpacing: 0.5),
                               )),
-                              SizedBox(height: 4),
+                              SizedBox(height: 2),
                               Text(
                                 DateFormat.yMMMd().format(
                                   _post.datePublished.toDate(),
                                 ),
                                 style: const TextStyle(
-                                    fontSize: 14, color: Colors.grey),
+                                    fontSize: 12.5, color: Colors.grey),
                               ),
                             ],
                           ),
@@ -456,13 +485,13 @@ class _PostCardState extends State<PostCard> {
                 children: [
                   InkWell(
                     onTap: () {
-                      // Navigator.push(
-                      //   context,
-                      //   MaterialPageRoute(
-                      //       builder: (context) => FullMessage(
-                      //           post: _post,
-                      //           indexPlacement: widget.indexPlacement)),
-                      // );
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => FullMessage(
+                                post: _post,
+                                indexPlacement: widget.indexPlacement)),
+                      );
                     },
                     child: Container(
                       alignment: Alignment.center,
@@ -476,10 +505,8 @@ class _PostCardState extends State<PostCard> {
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
                           Padding(
-                            padding: const EdgeInsets.only(
-                              top: 8,
-                              bottom: 8,
-                            ),
+                            padding: EdgeInsets.only(
+                                top: 8, bottom: _post.selected != 0 ? 4 : 0),
                             child: Container(
                               // width: 300,
 
@@ -490,7 +517,9 @@ class _PostCardState extends State<PostCard> {
                                 // maxLines: 8,
                                 // overflow: TextOverflow.ellipsis,
                                 style: TextStyle(
-                                    fontWeight: FontWeight.bold, fontSize: 16),
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w500,
+                                ),
                               ),
                             ),
                           ),
@@ -513,13 +542,13 @@ class _PostCardState extends State<PostCard> {
                           _post.selected == 1
                               ? InkWell(
                                   onTap: () {
-                                    // Navigator.push(
-                                    //   context,
-                                    //   MaterialPageRoute(
-                                    //       builder: (context) => FullImageScreen(
-                                    //             post: _post,
-                                    //           )),
-                                    // );
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                          builder: (context) => FullImageScreen(
+                                                post: _post,
+                                              )),
+                                    );
                                   },
                                   child: Container(
                                     // height: 150,
@@ -527,7 +556,7 @@ class _PostCardState extends State<PostCard> {
                                         0.445,
                                     width: MediaQuery.of(context).size.width *
                                         0.89,
-                                    color: Colors.black,
+                                    color: Color.fromARGB(255, 245, 245, 245),
 
                                     child: Image.network(
                                       _post.postUrl,
@@ -535,7 +564,7 @@ class _PostCardState extends State<PostCard> {
                                     ),
                                   ),
                                 )
-                              : _post.selected == 2
+                              : _post.selected == 3
                                   ? LayoutBuilder(
                                       builder: (context, constraints) {
                                       if (kIsWeb &&
@@ -619,6 +648,7 @@ class _PostCardState extends State<PostCard> {
                 child: Container(
                   height: 60,
                   decoration: BoxDecoration(
+                    // color: Colors.orange,
                     border: Border(
                       top: BorderSide(
                           width: 1, color: Color.fromARGB(255, 218, 216, 216)),
@@ -628,145 +658,29 @@ class _PostCardState extends State<PostCard> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Container(
+                        // color: Colors.blue,
                         height: 60,
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.end,
                           children: [
                             Container(
-                              width: 80,
-                              height: 39,
-                              alignment: Alignment.bottomCenter,
-                              child: placement.length == 1
-                                  ? Text(
-                                      placement,
-                                      style: TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        fontStyle: FontStyle.italic,
-                                        fontSize: 63,
-                                      ),
-                                    )
-                                  : placement.length == 2
-                                      ? Padding(
-                                          padding:
-                                              const EdgeInsets.only(top: 4.0),
-                                          child: Text(
-                                            placement,
+                                width: 90,
+                                height: 39,
+                                alignment: Alignment.bottomCenter,
+                                child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Padding(
+                                        padding:
+                                            const EdgeInsets.only(top: 12.0),
+                                        child: Text(placement,
                                             style: TextStyle(
+                                              fontSize: 22,
                                               fontWeight: FontWeight.bold,
                                               fontStyle: FontStyle.italic,
-                                              fontSize: 33,
-                                            ),
-                                          ),
-                                        )
-                                      : placement.length == 3
-                                          ? Padding(
-                                              padding:
-                                                  const EdgeInsets.only(top: 6),
-                                              child: Text(
-                                                placement,
-                                                style: TextStyle(
-                                                  fontWeight: FontWeight.bold,
-                                                  fontStyle: FontStyle.italic,
-                                                  fontSize: 30,
-                                                ),
-                                              ),
-                                            )
-                                          : placement.length == 4
-                                              ? Padding(
-                                                  padding:
-                                                      const EdgeInsets.only(
-                                                          top: 9),
-                                                  child: Text(
-                                                    placement,
-                                                    style: TextStyle(
-                                                      fontWeight:
-                                                          FontWeight.bold,
-                                                      fontStyle:
-                                                          FontStyle.italic,
-                                                      fontSize: 26,
-                                                    ),
-                                                  ),
-                                                )
-                                              : placement.length == 5
-                                                  ? Padding(
-                                                      padding:
-                                                          const EdgeInsets.only(
-                                                              top: 11.0),
-                                                      child: Text(
-                                                        placement,
-                                                        style: TextStyle(
-                                                          fontWeight:
-                                                              FontWeight.bold,
-                                                          fontStyle:
-                                                              FontStyle.italic,
-                                                          fontSize: 22,
-                                                        ),
-                                                      ),
-                                                    )
-                                                  : placement.length == 6
-                                                      ? Padding(
-                                                          padding:
-                                                              const EdgeInsets
-                                                                      .only(
-                                                                  bottom: 2.0),
-                                                          child: Text(
-                                                            placement,
-                                                            style: TextStyle(
-                                                              fontWeight:
-                                                                  FontWeight
-                                                                      .bold,
-                                                              fontStyle:
-                                                                  FontStyle
-                                                                      .italic,
-                                                              fontSize: 20,
-                                                            ),
-                                                          ),
-                                                        )
-                                                      : placement.length == 7
-                                                          ? Padding(
-                                                              padding:
-                                                                  const EdgeInsets
-                                                                          .only(
-                                                                      bottom:
-                                                                          3),
-                                                              child: Text(
-                                                                placement,
-                                                                style:
-                                                                    TextStyle(
-                                                                  fontWeight:
-                                                                      FontWeight
-                                                                          .bold,
-                                                                  fontStyle:
-                                                                      FontStyle
-                                                                          .italic,
-                                                                  fontSize: 18,
-                                                                ),
-                                                              ),
-                                                            )
-                                                          : placement.length ==
-                                                                  8
-                                                              ? Padding(
-                                                                  padding: const EdgeInsets
-                                                                          .only(
-                                                                      bottom:
-                                                                          3.0),
-                                                                  child: Text(
-                                                                    placement,
-                                                                    style:
-                                                                        TextStyle(
-                                                                      fontWeight:
-                                                                          FontWeight
-                                                                              .bold,
-                                                                      fontStyle:
-                                                                          FontStyle
-                                                                              .italic,
-                                                                      fontSize:
-                                                                          17,
-                                                                    ),
-                                                                  ),
-                                                                )
-                                                              : null,
-                            ),
+                                            )),
+                                      )
+                                    ])),
                             Container(
                               // color: Colors.green,
                               width: 88,
@@ -866,6 +780,7 @@ class _PostCardState extends State<PostCard> {
                             alignment: Alignment.topCenter,
                             height: 60,
                             width: 59,
+                            // color: Colors.blue,
                             child: LikeAnimation(
                               isAnimating: _post.neutral.contains(user?.uid),
                               child: IconButton(
@@ -929,34 +844,36 @@ class _PostCardState extends State<PostCard> {
                             width: 59,
                             child: LikeAnimation(
                               isAnimating: _post.minus.contains(user?.uid),
-                              child: IconButton(
-                                iconSize: 25,
-                                onPressed: () {
-                                  performLoggedUserAction(
-                                      context: context,
-                                      action: () async {
-                                        await FirestoreMethods().minusMessage(
-                                          _post.postId,
-                                          user?.uid ?? '',
-                                          _post.minus,
-                                        );
-                                        FirestoreMethods().scoreMessage(
+                              child: Container(
+                                child: IconButton(
+                                  iconSize: 25,
+                                  onPressed: () {
+                                    performLoggedUserAction(
+                                        context: context,
+                                        action: () async {
+                                          await FirestoreMethods().minusMessage(
                                             _post.postId,
                                             user?.uid ?? '',
-                                            _post.plus.length -
-                                                _post.minus.length);
-                                      });
-                                },
-                                icon: _post.minus.contains(user?.uid)
-                                    ? Icon(
-                                        Icons.do_not_disturb_on,
-                                        color: Colors.red,
-                                      )
-                                    : Icon(
-                                        Icons.do_not_disturb_on,
-                                        color:
-                                            Color.fromARGB(255, 206, 204, 204),
-                                      ),
+                                            _post.minus,
+                                          );
+                                          FirestoreMethods().scoreMessage(
+                                              _post.postId,
+                                              user?.uid ?? '',
+                                              _post.plus.length -
+                                                  _post.minus.length);
+                                        });
+                                  },
+                                  icon: _post.minus.contains(user?.uid)
+                                      ? Icon(
+                                          Icons.do_not_disturb_on,
+                                          color: Colors.red,
+                                        )
+                                      : Icon(
+                                          Icons.do_not_disturb_on,
+                                          color: Color.fromARGB(
+                                              255, 206, 204, 204),
+                                        ),
+                                ),
                               ),
                             ),
                           ),
@@ -993,48 +910,57 @@ class _PostCardState extends State<PostCard> {
                   // color: Colors.red,
                   child: Padding(
                     padding: const EdgeInsets.only(top: 6.0),
-                    child: Container(
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Icon(
-                            Icons.comment_outlined,
-                            size: 15,
-                            color: Color.fromARGB(255, 132, 132, 132),
-                          ),
-                          Container(width: 8),
-                          Container(
-                            child: Center(
-                              // child: Text(
-                              //   '$commentLen Comments',
-                              //   style: const TextStyle(
-                              //       fontSize: 13,
-                              //       color:
-                              //           Color.fromARGB(255, 132, 132, 132),
-                              //       letterSpacing: 0.8),
-                              child: StreamBuilder(
-                                stream: FirebaseFirestore.instance
-                                    .collection('posts')
-                                    .doc(_post.postId)
-                                    .collection('comments')
-                                    .snapshots(),
-                                builder: (content, snapshot) {
-                                  print(
-                                      'BEFORE SNAPSHOT _post.comments: ${widget.post.comments}');
+                    child: InkWell(
+                      onTap: () => Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (context) => FullMessage(
+                              post: _post,
+                              indexPlacement: widget.indexPlacement),
+                        ),
+                      ),
+                      child: Container(
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Icon(
+                              Icons.comment_outlined,
+                              size: 15,
+                              color: Color.fromARGB(255, 132, 132, 132),
+                            ),
+                            Container(width: 8),
+                            Container(
+                              child: Center(
+                                // child: Text(
+                                //   '$commentLen Comments',
+                                //   style: const TextStyle(
+                                //       fontSize: 13,
+                                //       color:
+                                //           Color.fromARGB(255, 132, 132, 132),
+                                //       letterSpacing: 0.8),
+                                child: StreamBuilder(
+                                  stream: FirebaseFirestore.instance
+                                      .collection('posts')
+                                      .doc(_post.postId)
+                                      .collection('comments')
+                                      .snapshots(),
+                                  builder: (content, snapshot) {
+                                    print(
+                                        'BEFORE SNAPSHOT _post.comments: ${widget.post.comments}');
 
-                                  return Text(
-                                    '${(snapshot.data as dynamic)?.docs.length ?? 0} Comments',
-                                    style: const TextStyle(
-                                        fontSize: 13,
-                                        color:
-                                            Color.fromARGB(255, 132, 132, 132),
-                                        letterSpacing: 0.8),
-                                  );
-                                },
+                                    return Text(
+                                      '${(snapshot.data as dynamic)?.docs.length ?? 0} Comments',
+                                      style: const TextStyle(
+                                          fontSize: 13,
+                                          color: Color.fromARGB(
+                                              255, 132, 132, 132),
+                                          letterSpacing: 0.8),
+                                    );
+                                  },
+                                ),
                               ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     ),
                   ),
